@@ -5,7 +5,7 @@ function anythingDifferent(value1, value2) {
     return simpleObjectDifferent(value1, value2, true)
   } else if (typeof value1 == "object" && typeof value2 == "object" && value1 && value2) {
     return !Object.is(value1, value2)
-  } else if (value1 != value2) {
+  } else if (value1 !== value2) {
     return true
   }
 
@@ -35,7 +35,7 @@ function isSimpleObject(value) {
 }
 
 function simpleObjectDifferent(object1, object2, checkLength) {
-  if (checkLength && Object.keys(object1).length != Object.keys(object2).length) {
+  if (checkLength && Object.keys(object1).length !== Object.keys(object2).length) {
     return true
   }
 
