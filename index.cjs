@@ -52,7 +52,18 @@ function setState(component, state) {
   return new Promise((resolve) => {
     if (typeof state == "function") {
       // We can't skip this type of setState
-      component.setState((prevState) => state(prevState), resolve)
+      component.setState(
+        (prevState) => {
+          const newState = state(prevState)
+
+          if (simpleObjectDifferent(newState, prevState, false)) {
+            return newState
+          }
+
+          return null
+        },
+        resolve
+      )
     } else {
       if (simpleObjectDifferent(state, component.state, false)) {
         component.setState(state, resolve)
