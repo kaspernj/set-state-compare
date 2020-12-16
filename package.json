@@ -1,0 +1,27 @@
+{
+  "name": "set-state-compare",
+  "version": "1.0.0",
+  "description": "setState for React that compares with the current state and only sets the state if changed.",
+  "main": "index.cjs",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/kaspernj/set-state-compare.git"
+  },
+  "keywords": [
+    "react",
+    "set",
+    "state"
+  ],
+  "author": "Kasper Stöckel <kaspernj@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kaspernj/set-state-compare/issues"
+  },
+  "homepage": "https://github.com/kaspernj/set-state-compare#readme",
+  "devDependencies": {
+    "jasmine": "^3.6.3"
+  }
+}
