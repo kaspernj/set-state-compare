@@ -48,8 +48,20 @@ function simpleObjectDifferent(object1, object2, checkLength) {
   return false
 }
 
-function setState(component, state) {
+function setState(component, state, callback) {
   return new Promise((resolve) => {
+    let finish
+
+    // Support being a drop-in replacement by passing an extra callback option but dont spawn an extra function unless given
+    if (callback) {
+      finish = function() {
+        resolve()
+        callback()
+      }
+    } else {
+      finish = resolve
+    }
+
     if (typeof state == "function") {
       // We can't skip this type of setState
       component.setState(
@@ -62,13 +74,13 @@ function setState(component, state) {
 
           return null
         },
-        resolve
+        finish
       )
     } else {
       if (simpleObjectDifferent(state, component.state, false)) {
-        component.setState(state, resolve)
+        component.setState(state, finish)
       } else {
-        resolve()
+        finish()
       }
     }
   })
