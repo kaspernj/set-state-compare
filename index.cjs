@@ -50,10 +50,15 @@ function simpleObjectDifferent(object1, object2, checkLength) {
 
 function setState(component, state) {
   return new Promise((resolve) => {
-    if (simpleObjectDifferent(state, component.state, false)) {
-      component.setState(state, resolve)
+    if (typeof state == "function") {
+      // We can't skip this type of setState
+      component.setState((prevState) => state(prevState), resolve)
     } else {
-      resolve()
+      if (simpleObjectDifferent(state, component.state, false)) {
+        component.setState(state, resolve)
+      } else {
+        resolve()
+      }
     }
   })
 }
