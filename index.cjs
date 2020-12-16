@@ -18,10 +18,7 @@ function arrayDifferent(array1, array2) {
   }
 
   for (const key in array1) {
-    const value1 = array1[key]
-    const value2 = array2[key]
-
-    if (anythingDifferent(value1, value2)) {
+    if (anythingDifferent(array1[key], array2[key])) {
       return true
     }
   }
