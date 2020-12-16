@@ -12,14 +12,6 @@ function anythingDifferent(value1, value2) {
   return false
 }
 
-function isSimpleObject(value) {
-  if (typeof value == "object" && value !== null && value.constructor.name == "Object") {
-    return true
-  }
-
-  return false
-}
-
 function arrayDifferent(array1, array2) {
   if (array1.length != array2.length) {
     return true
@@ -32,6 +24,14 @@ function arrayDifferent(array1, array2) {
     if (anythingDifferent(value1, value2)) {
       return true
     }
+  }
+
+  return false
+}
+
+function isSimpleObject(value) {
+  if (typeof value == "object" && value !== null && value.constructor.name == "Object") {
+    return true
   }
 
   return false
