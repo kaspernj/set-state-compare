@@ -1,6 +1,6 @@
 {
   "name": "set-state-compare",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "setState for React that compares with the current state and only sets the state if changed.",
   "main": "index.cjs",
   "scripts": {
