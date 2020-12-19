@@ -27,22 +27,37 @@ describe("shape", () => {
 
     for (let i = 0; i < 10; i++) {
       promises.push(new Promise((resolve) => {
-        shape.set({firstName: "Kasper"}, () => {
-          calledCount++
-          resolve()
-        })
+        setTimeout(
+          () => {
+            shape.set({firstName: "Kasper"}, () => {
+              calledCount++
+              resolve()
+            })
+          },
+          i
+        )
       }))
       promises.push(new Promise((resolve) => {
-        shape.set({firstName: "Kasper"}, () => {
-          calledCount++
-          resolve()
-        })
+        setTimeout(
+          () => {
+            shape.set({firstName: "Kasper"}, () => {
+              calledCount++
+              resolve()
+            })
+          },
+          i
+        )
       }))
       promises.push(new Promise((resolve) => {
-        shape.set({firstName: "Christina"}, () => {
-          calledCount++
-          resolve()
-        })
+        setTimeout(
+          () => {
+            shape.set({firstName: "Christina"}, () => {
+              calledCount++
+              resolve()
+            })
+          },
+          i
+        )
       }))
     }
 
