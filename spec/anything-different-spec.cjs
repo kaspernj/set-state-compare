@@ -1,4 +1,4 @@
-const {anythingDifferent} = require("../index.cjs")
+const {anythingDifferent} = require("../lib/diff-utils.cjs")
 
 describe("anythingDifferent", () => {
   it("when nothing nested is different", () => {
