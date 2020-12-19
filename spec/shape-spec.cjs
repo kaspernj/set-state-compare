@@ -18,22 +18,37 @@ function spawnFakeComponent() {
 }
 
 describe("shape", () => {
-  it("calls the callback once it has set the state", async () => {
+  it("calls all given callbacks once when it has set the state", async () => {
     const fakeComponent = spawnFakeComponent()
+    const promises = []
     const shape = new Shape(fakeComponent)
 
-    let called = false
+    let calledCount = 0
 
-    const promise = new Promise((resolve) => {
-      shape.set({firstName: "Kasper"}, () => {
-        called = true
-        resolve()
-      })
-    })
+    for (let i = 0; i < 10; i++) {
+      promises.push(new Promise((resolve) => {
+        shape.set({firstName: "Kasper"}, () => {
+          calledCount++
+          resolve()
+        })
+      }))
+      promises.push(new Promise((resolve) => {
+        shape.set({firstName: "Kasper"}, () => {
+          calledCount++
+          resolve()
+        })
+      }))
+      promises.push(new Promise((resolve) => {
+        shape.set({firstName: "Christina"}, () => {
+          calledCount++
+          resolve()
+        })
+      }))
+    }
 
-    await Promise.all([promise])
+    await Promise.all(promises)
 
-    expect(shape.firstName).toBe("Kasper")
-    expect(called).toBe(true)
+    expect(shape.firstName).toBe("Christina")
+    expect(calledCount).toBe(30)
   })
 })
