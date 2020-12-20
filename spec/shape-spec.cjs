@@ -2,6 +2,9 @@ const Shape = require("../lib/shape.cjs")
 
 function spawnFakeComponent() {
   const fakeComponent = {
+    forceUpdate: function(callback) {
+      callback()
+    },
     state: {
       firstName: "Donald",
       lastName: "Goose"
