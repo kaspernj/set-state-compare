@@ -4,6 +4,7 @@ module.exports = {
   anythingDifferent,
   arrayDifferent,
   isSimpleObject,
+  shouldComponentUpdate: require("./lib/should-component-update.cjs"),
   simpleObjectDifferent,
   simpleObjectValuesDifferent,
   Shape: require("./lib/shape.cjs"),
