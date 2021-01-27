@@ -118,4 +118,28 @@ describe("shouldComponentUpdate", () => {
 
     expect(result).toBeTrue()
   })
+
+  it("returns true when a sub element is changed", () => {
+    const component = {
+      props: {
+        users: {
+          people: {
+            ids: [1, 2, 3]
+          }
+        }
+      }
+    }
+
+    const nextProps = {
+      users: {
+        people: {
+          ids: [1, 2, 3, 4]
+        }
+      }
+    }
+
+    const result = shouldComponentUpdate(component, nextProps)
+
+    expect(result).toBeTrue()
+  })
 })
