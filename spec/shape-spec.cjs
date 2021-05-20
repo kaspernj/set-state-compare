@@ -69,4 +69,34 @@ describe("shape", () => {
     expect(shape.firstName).toBe("Christina")
     expect(calledCount).toBe(30)
   })
+
+  it("calls callbacks even if there isn't anything to change in shape and in the correct order", async () => {
+    const fakeComponent = spawnFakeComponent()
+    const shape = new Shape(fakeComponent, {age: 1})
+    const result = []
+    const promises = []
+
+    promises.push(new Promise((resolve) => {
+      shape.set({firstName: "Donald"}, () => {
+        result.push(1)
+        resolve()
+      })
+    }))
+    promises.push(new Promise((resolve) => {
+      shape.set({firstName: "Donald"}, () => {
+        result.push(2)
+        resolve()
+      })
+    }))
+    promises.push(new Promise((resolve) => {
+      shape.set({firstName: "Kasper"}, () => {
+        result.push(3)
+        resolve()
+      })
+    }))
+
+    await Promise.all(promises)
+
+    expect(result).toEqual([1, 2, 3])
+  })
 })
