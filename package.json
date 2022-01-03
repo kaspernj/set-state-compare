@@ -22,6 +22,6 @@
   },
   "homepage": "https://github.com/kaspernj/set-state-compare#readme",
   "devDependencies": {
-    "jasmine": "^3.6.3"
+    "jasmine": "^4.0.0"
   }
 }
