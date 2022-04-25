@@ -1,4 +1,4 @@
-const {simpleObjectDifferent} = require("../index.cjs")
+import {simpleObjectDifferent} from "../index.js"
 
 describe("simpleObjectDifferent", () => {
   it("returns true if the length isn't the same and set to check that", () => {

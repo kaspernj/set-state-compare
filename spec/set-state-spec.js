@@ -1,4 +1,4 @@
-const {setState} = require("../index.cjs")
+import {setState} from "../index.js"
 
 describe("setState", () => {
   it("sets the state when the object is different", () => {

@@ -1,4 +1,4 @@
-const Shape = require("../lib/shape.cjs")
+import Shape from "../lib/shape.js"
 
 function spawnFakeComponent() {
   const fakeComponent = {

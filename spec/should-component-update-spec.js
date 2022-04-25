@@ -1,4 +1,4 @@
-const shouldComponentUpdate = require("../lib/should-component-update.cjs")
+import shouldComponentUpdate from "../lib/should-component-update.js"
 
 describe("shouldComponentUpdate", () => {
   it("returns true when given fewer props than before", () => {

@@ -1,4 +1,4 @@
-const {isSimpleObject} = require("../index.cjs")
+import {isSimpleObject} from "../index.js"
 
 describe("isSimpleObject", () => {
   it("returns true for simple objects", () => {

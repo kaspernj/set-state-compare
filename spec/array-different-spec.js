@@ -1,4 +1,4 @@
-const {arrayDifferent} = require("../index.cjs")
+import {arrayDifferent} from "../index.js"
 
 describe("arrayDifferent", () => {
   it("returns true if the length isn't the same", () => {
