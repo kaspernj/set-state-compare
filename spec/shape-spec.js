@@ -1,4 +1,4 @@
-import Shape from "../lib/shape.js"
+import Shape from "../src/shape.js"
 
 function spawnFakeComponent() {
   const fakeComponent = {

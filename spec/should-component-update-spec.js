@@ -1,4 +1,4 @@
-import shouldComponentUpdate from "../lib/should-component-update.js"
+import shouldComponentUpdate from "../src/should-component-update.js"
 
 describe("shouldComponentUpdate", () => {
   it("returns true when given fewer props than before", () => {

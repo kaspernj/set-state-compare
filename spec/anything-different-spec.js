@@ -1,4 +1,4 @@
-import {anythingDifferent} from "../lib/diff-utils.js"
+import {anythingDifferent} from "../src/diff-utils.js"
 
 describe("anythingDifferent", () => {
   it("when nothing nested is different", () => {
