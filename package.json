@@ -24,6 +24,6 @@
   "build": "npx babel src --out-dir dist",
   "homepage": "https://github.com/kaspernj/set-state-compare#readme",
   "devDependencies": {
-    "jasmine": "^4.0.0"
+    "jasmine": "^4.3.0"
   }
 }
