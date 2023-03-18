@@ -30,13 +30,14 @@ export default class Shape {
     this.__component = component
     this.__stateCallbacks = []
     this.__renderCount = 0
+    this.__prevShape = {}
 
     if (settings.mode == "setState" && component.state === undefined) {
       component.state = {}
     }
 
     if (data) {
-      this.__setDataOnThis(data)
+      this.__setDataOnThis(data, true)
     }
   }
 
@@ -59,9 +60,19 @@ export default class Shape {
     }
   }
 
-  __setDataOnThis(newData) {
+  __setDataOnThis(newData, skipDidUpdate) {
+    let prevShape
+
+    if (this.__component.shapeUpdated && !skipDidUpdate) {
+      prevShape = Object.assign({}, this)
+    }
+
     for (const key in newData) {
       this[key] = newData[key]
+    }
+
+    if (this.__component.shapeUpdated && !skipDidUpdate) {
+      this.__component.shapeUpdated(prevShape)
     }
   }
 
@@ -96,6 +107,9 @@ export default class Shape {
       stateCallback()
     }
 
+    if (this.__component.shapeDidUpdate) this.__component.shapeDidUpdate(this.__prevShape)
+
+    this.__prevShape = Object.assign({}, this)
     this.__stateCallbacks = []
   }
 
