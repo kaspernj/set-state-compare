@@ -2,6 +2,20 @@ import Shape from "../src/shape.js"
 
 function spawnFakeComponent() {
   const fakeComponent = {
+    shapeDidUpdate() {
+      if (this.shapeDidUpdateCalled === undefined) {
+        this.shapeDidUpdateCalled = 0
+      }
+
+      this.shapeDidUpdateCalled++
+    },
+    shapeUpdated() {
+      if (this.shapeUpdatedCalled === undefined) {
+        this.shapeUpdatedCalled = 0
+      }
+
+      this.shapeUpdatedCalled++
+    },
     forceUpdate: function(callback) {
       callback()
     },
@@ -98,5 +112,7 @@ describe("shape", () => {
     await Promise.all(promises)
 
     expect(result).toEqual([1, 2, 3])
+    expect(fakeComponent.shapeDidUpdateCalled).toEqual(1)
+    expect(fakeComponent.shapeUpdatedCalled).toEqual(2)
   })
 })
