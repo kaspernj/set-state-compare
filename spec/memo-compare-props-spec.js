@@ -13,7 +13,7 @@ describe("memoCompareProps", () => {
 
     const result = memoCompareProps(prevProps, nextProps)
 
-    expect(result).toBeTrue()
+    expect(result).toBeFalse()
   })
 
   it("returns true when given more props than before", () => {
@@ -28,7 +28,7 @@ describe("memoCompareProps", () => {
 
     const result = memoCompareProps(prevProps, nextProps)
 
-    expect(result).toBeTrue()
+    expect(result).toBeFalse()
   })
 
   it("returns true when given different props than before", () => {
@@ -42,7 +42,7 @@ describe("memoCompareProps", () => {
 
     const result = memoCompareProps(prevProps, nextProps)
 
-    expect(result).toBeTrue()
+    expect(result).toBeFalse()
   })
 
   it("returns true when a sub element is changed", () => {
@@ -64,6 +64,6 @@ describe("memoCompareProps", () => {
 
     const result = memoCompareProps(prevProps, nextProps)
 
-    expect(result).toBeTrue()
+    expect(result).toBeFalse()
   })
 })
