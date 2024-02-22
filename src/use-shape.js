@@ -22,20 +22,20 @@ class Shape {
   useState(stateName, defaultValue) {
     const [_state, setState] = useState(defaultValue)
     const patchedSetState = useCallback((newValue) => {
-      this.state[stateName] = newValue
+      this.actualState[stateName] = newValue
       setState(newValue)
     }, [])
 
-    useEffect(() => {
-      this.state[stateName] = defaultValue
-    }, [])
+    if (!(stateName in this.actualState)) {
+      this.actualState[stateName] = defaultValue
+    }
 
     return patchedSetState
   }
 }
 
-const useShape = ({props}) => {
-  const shape = useMemo(new Shape(), [])
+const useShape = (props) => {
+  const shape = useMemo(() => new Shape(), [])
 
   shape.updateProps(props)
 
