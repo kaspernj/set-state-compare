@@ -1,4 +1,4 @@
-function anythingDifferent(value1, value2) {
+function anythingDifferent(value1, value2, debug) {
   if (Array.isArray(value1) && Array.isArray(value2)) {
     return arrayDifferent(value1, value2)
   } else if (isSimpleObject(value1) && isSimpleObject(value2)) {
@@ -6,6 +6,8 @@ function anythingDifferent(value1, value2) {
   } else if (typeof value1 == "object" && typeof value2 == "object" && value1 && value2) {
     return !Object.is(value1, value2)
   } else if (value1 !== value2) {
+    if (debug) console.log(`Value 1 ${value1} wasn't the same as value 2 ${value2}`)
+
     return true
   }
 
@@ -42,11 +44,26 @@ function simpleObjectDifferent(object1, object2, checkLength) {
   return simpleObjectValuesDifferent(object1, object2)
 }
 
-function simpleObjectValuesDifferent(object1, object2) {
+function simpleObjectValuesDifferent(object1, object2, args) {
   for (const key in object1) {
+    if (args?.ignore && args.ignore({key})) {
+      if (args?.debug) console.log(`Ignoring key ${key}`)
+      continue
+    }
+
+    if (args?.debug) console.log({key, object1: object1[key], object2: object2[key]})
+
     if (!(key in object2)) {
+      if (args?.debug) {
+        console.log(`Key ${key} wasn't found in object`)
+      }
+
       return true
-    } else if (anythingDifferent(object1[key], object2[key])) {
+    } else if (anythingDifferent(object1[key], object2[key], args?.debug)) {
+      if (args?.debug) {
+        console.log(`Something was different for ${key}`)
+      }
+
       return true
     }
   }
