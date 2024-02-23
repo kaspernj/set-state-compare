@@ -25,5 +25,8 @@
   "homepage": "https://github.com/kaspernj/set-state-compare#readme",
   "devDependencies": {
     "jasmine": "^5.0.0"
+  },
+  "dependencies": {
+    "fetching-object": ">= 1.0.1"
   }
 }
