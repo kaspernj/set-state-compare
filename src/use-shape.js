@@ -3,31 +3,31 @@ import fetchingObject from "fetching-object"
 
 class Shape {
   constructor() {
-    this.actualState = {}
-    this.actualProps = {}
-    this.actualMeta = {}
-    this.meta = fetchingObject(() => this.actualMeta)
-    this.props = fetchingObject(() => this.actualProps)
-    this.state = fetchingObject(this.actualState)
+    this.state = {}
+    this.props = {}
+    this.meta = {}
+    this.m = fetchingObject(() => this.meta)
+    this.p = fetchingObject(() => this.props)
+    this.s = fetchingObject(this.state)
   }
 
   updateMeta(newMeta) {
-    this.actualMeta = newMeta
+    this.meta = newMeta
   }
 
   updateProps(newProps) {
-    this.actualProps = newProps
+    this.props = newProps
   }
 
   useState(stateName, defaultValue) {
     const [_state, setState] = useState(defaultValue)
     const patchedSetState = useCallback((newValue) => {
-      this.actualState[stateName] = newValue
+      this.state[stateName] = newValue
       setState(newValue)
     }, [])
 
-    if (!(stateName in this.actualState)) {
-      this.actualState[stateName] = defaultValue
+    if (!(stateName in this.state)) {
+      this.state[stateName] = defaultValue
     }
 
     return patchedSetState
