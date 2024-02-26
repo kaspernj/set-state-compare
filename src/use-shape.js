@@ -1,4 +1,5 @@
-import {useCallback, useEffect, useMemo, useState} from "react"
+import {anythingDifferent} from "./diff-utils.js"
+import {useCallback, useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
 
 class Shape {
@@ -12,7 +13,7 @@ class Shape {
   }
 
   updateMeta(newMeta) {
-    this.meta = newMeta
+    Object.assign(this.meta, newMeta)
   }
 
   updateProps(newProps) {
@@ -22,8 +23,10 @@ class Shape {
   useState(stateName, defaultValue) {
     const [_state, setState] = useState(defaultValue)
     const patchedSetState = useCallback((newValue) => {
-      this.state[stateName] = newValue
-      setState(newValue)
+      if (anythingDifferent(this.state[stateName], newValue)) {
+        this.state[stateName] = newValue
+        setState(newValue)
+      }
     }, [])
 
     if (!(stateName in this.state)) {
