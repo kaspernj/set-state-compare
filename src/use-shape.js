@@ -4,12 +4,25 @@ import fetchingObject from "fetching-object"
 
 class Shape {
   constructor() {
+    this.setStates = {}
     this.state = {}
     this.props = {}
     this.meta = {}
     this.m = fetchingObject(() => this.meta)
     this.p = fetchingObject(() => this.props)
     this.s = fetchingObject(this.state)
+  }
+
+  set(statesList) {
+    for (const stateName in statesList) {
+      const newValue = statesList[stateName]
+
+      if (!(stateName in this.setStates)) {
+        throw new Error(`No such state: ${stateName}`)
+      }
+
+      this.setStates[stateName](newValue)
+    }
   }
 
   updateMeta(newMeta) {
@@ -31,9 +44,24 @@ class Shape {
 
     if (!(stateName in this.state)) {
       this.state[stateName] = defaultValue
+      this.setStates[stateName] = patchedSetState
     }
 
     return patchedSetState
+  }
+
+  useStates(statesList) {
+    if (Array.isArray(statesList)) {
+      for(const stateName of statesList) {
+        this.useState(stateName)
+      }
+    } else {
+      for(const stateName in statesList) {
+        const defaultValue = statesList[stateName]
+
+        this.useState(stateName, defaultValue)
+      }
+    }
   }
 }
 
