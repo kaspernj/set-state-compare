@@ -35,19 +35,18 @@ class Shape {
 
   useState(stateName, defaultValue) {
     const [_state, setState] = useState(defaultValue)
-    const patchedSetState = useCallback((newValue) => {
-      if (anythingDifferent(this.state[stateName], newValue)) {
-        this.state[stateName] = newValue
-        setState(newValue)
-      }
-    }, [])
 
     if (!(stateName in this.state)) {
       this.state[stateName] = defaultValue
-      this.setStates[stateName] = patchedSetState
+      this.setStates[stateName] = (newValue) => {
+        if (anythingDifferent(this.state[stateName], newValue)) {
+          this.state[stateName] = newValue
+          setState(newValue)
+        }
+      }
     }
 
-    return patchedSetState
+    return this.setStates[stateName]
   }
 
   useStates(statesList) {
