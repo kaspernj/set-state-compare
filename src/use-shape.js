@@ -1,5 +1,5 @@
 import {anythingDifferent} from "./diff-utils.js"
-import {useCallback, useMemo, useState} from "react"
+import {useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
 
 class Shape {
@@ -64,12 +64,14 @@ class Shape {
   }
 }
 
-const useShape = (props) => {
-  const shape = useMemo(() => new Shape(), [])
+const useShape = (props, opts) => {
+  const ShapeClass = opts?.shapeClass || Shape
+  const shape = useMemo(() => new ShapeClass(), [])
 
   shape.updateProps(props)
 
   return shape
 }
 
+export {Shape}
 export default useShape
