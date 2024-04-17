@@ -34,10 +34,10 @@ class Shape {
   }
 
   useState(stateName, defaultValue) {
-    const [_state, setState] = useState(defaultValue)
+    const [stateValue, setState] = useState(defaultValue)
 
     if (!(stateName in this.state)) {
-      this.state[stateName] = defaultValue
+      this.state[stateName] = stateValue
       this.setStates[stateName] = (newValue) => {
         if (anythingDifferent(this.state[stateName], newValue)) {
           this.state[stateName] = newValue
