@@ -64,14 +64,34 @@ class Shape {
   }
 }
 
+const shapeComponent = (ShapeClass) => {
+  return (props) => {
+    const shape = useMemo(() => new ShapeClass())
+
+    shape.updateProps(props)
+
+    if (shape.setup) {
+      shape.setup()
+    }
+
+    return shape.render()
+  }
+}
+
 const useShape = (props, opts) => {
-  const ShapeClass = opts?.shapeClass || Shape
-  const shape = useMemo(() => new ShapeClass(), [])
+  const shape = useMemo(
+    () => {
+      const ShapeClass = opts?.shapeClass || Shape
+
+      return new ShapeClass()
+    },
+    []
+  )
 
   shape.updateProps(props)
 
   return shape
 }
 
-export {Shape}
+export {shapeComponent, Shape}
 export default useShape
