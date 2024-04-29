@@ -1,19 +1,12 @@
-import {anythingDifferent} from "./diff-utils.js"
-import {useMemo, useState} from "react"
-import fetchingObject from "fetching-object"
+import memoCompareProps from "./memo-compare-props.js"
 
-class Shape {
+class ShapeComponent {
   constructor() {
     this.setStates = {}
     this.state = {}
-    this.props = {}
-    this.meta = {}
-    this.m = fetchingObject(() => this.meta)
-    this.p = fetchingObject(() => this.props)
-    this.s = fetchingObject(this.state)
   }
 
-  set(statesList) {
+  setState(statesList) {
     for (const stateName in statesList) {
       const newValue = statesList[stateName]
 
@@ -25,14 +18,6 @@ class Shape {
     }
   }
 
-  updateMeta(newMeta) {
-    Object.assign(this.meta, newMeta)
-  }
-
-  updateProps(newProps) {
-    this.props = newProps
-  }
-
   useState(stateName, defaultValue) {
     const [stateValue, setState] = useState(defaultValue)
 
@@ -40,8 +25,19 @@ class Shape {
       this.state[stateName] = stateValue
       this.setStates[stateName] = (newValue) => {
         if (anythingDifferent(this.state[stateName], newValue)) {
+          let prevState
+
+          if (this.componentDidUpdate) {
+            prevState = Object.assign({}, this.state)
+          }
+
           this.state[stateName] = newValue
+
           setState(newValue)
+
+          if (this.componentDidUpdate) {
+            this.componentDidUpdate(this.props, prevState)
+          }
         }
       }
     }
@@ -67,31 +63,23 @@ class Shape {
 const shapeComponent = (ShapeClass) => {
   return (props) => {
     const shape = useMemo(() => new ShapeClass(), [])
+    const prevProps = shape.props
 
-    shape.updateProps(props)
+    shape.props = props
 
     if (shape.setup) {
       shape.setup()
+    }
+
+    if (shape.componentDidMount && !shape.__componentDidMountCalled) {
+      shape.componentDidMount()
+      shape.__componentDidMountCalled = true
+    } else if (shape.componentDidUpdate && memoCompareProps(shape.props, props)) {
+      shape.componentDidUpdate(prevProps, shape.state)
     }
 
     return shape.render()
   }
 }
 
-const useShape = (props, opts) => {
-  const shape = useMemo(
-    () => {
-      const ShapeClass = opts?.shapeClass || Shape
-
-      return new ShapeClass()
-    },
-    []
-  )
-
-  shape.updateProps(props)
-
-  return shape
-}
-
-export {shapeComponent, Shape}
-export default useShape
+export {shapeComponent, ShapeComponent}
