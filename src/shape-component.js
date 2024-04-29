@@ -1,3 +1,4 @@
+import {anythingDifferent} from "./diff-utils.js"
 import memoCompareProps from "./memo-compare-props.js"
 
 class ShapeComponent {
