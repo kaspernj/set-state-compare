@@ -2,7 +2,8 @@ import {anythingDifferent} from "./diff-utils.js"
 import memoCompareProps from "./memo-compare-props.js"
 
 class ShapeComponent {
-  constructor() {
+  constructor(props) {
+    this.props = props
     this.setStates = {}
     this.state = {}
   }
@@ -63,7 +64,7 @@ class ShapeComponent {
 
 const shapeComponent = (ShapeClass) => {
   return (props) => {
-    const shape = useMemo(() => new ShapeClass(), [])
+    const shape = useMemo(() => new ShapeClass(props), [])
     const prevProps = shape.props
 
     shape.props = props
