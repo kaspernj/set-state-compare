@@ -63,7 +63,7 @@ class ShapeComponent {
 }
 
 const shapeComponent = (ShapeClass) => {
-  return (props) => {
+  const functionalComponent = (props) => {
     const shape = useMemo(() => new ShapeClass(props), [])
     const prevProps = shape.props
 
@@ -82,6 +82,16 @@ const shapeComponent = (ShapeClass) => {
 
     return shape.render()
   }
+
+  if (ShapeClass.defaultProps) {
+    functionalComponent.defaultProps = ShapeClass.defaultProps
+  }
+
+  if (ShapeClass.propTypes) {
+    functionalComponent.propTypes = ShapeClass.propTypes
+  }
+
+  return functionalComponent
 }
 
 export {shapeComponent, ShapeComponent}
