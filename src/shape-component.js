@@ -8,6 +8,12 @@ class ShapeComponent {
     this.state = {}
   }
 
+  setInstance(variables) {
+    for (const name in variables) {
+      this[name] = variables[name]
+    }
+  }
+
   setState(statesList) {
     for (const stateName in statesList) {
       const newValue = statesList[stateName]
