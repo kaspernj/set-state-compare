@@ -1,5 +1,7 @@
 import {anythingDifferent} from "./diff-utils.js"
 import memoCompareProps from "./memo-compare-props.js"
+import PropTypes from "prop-types"
+import useDidMount from "use-did-mount"
 
 class ShapeComponent {
   constructor(props) {
@@ -70,32 +72,41 @@ class ShapeComponent {
 
 const shapeComponent = (ShapeClass) => {
   const functionalComponent = (props) => {
-    const shape = useMemo(() => new ShapeClass(props), [])
+    let actualProps
+
+    if (ShapeClass.defaultProps) {
+      actualProps = Object.assign({}, ShapeClass.defaultProps, props)
+    } else {
+      actualProps = props
+    }
+
+    if (ShapeClass.propTypes) {
+      PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
+    }
+
+    const shape = useMemo(() => new ShapeClass(actualProps), [])
     const prevProps = shape.props
 
-    shape.props = props
+    shape.props = actualProps
 
     if (shape.setup) {
       shape.setup()
     }
 
-    if (shape.componentDidMount && !shape.__componentDidMountCalled) {
-      shape.componentDidMount()
-      shape.__componentDidMountCalled = true
-    } else if (shape.componentDidUpdate && memoCompareProps(shape.props, props)) {
+    if (shape.componentDidUpdate && shape.__firstRenderCompleted && memoCompareProps(shape.props, props)) {
       shape.componentDidUpdate(prevProps, shape.state)
     }
+
+    if (shape.componentDidMount) {
+      useDidMount(() => shape.componentDidMount())
+    }
+
+    shape.__firstRenderCompleted = true
 
     return shape.render()
   }
 
-  if (ShapeClass.defaultProps) {
-    functionalComponent.defaultProps = ShapeClass.defaultProps
-  }
-
-  if (ShapeClass.propTypes) {
-    functionalComponent.propTypes = ShapeClass.propTypes
-  }
+  functionalComponent.displayName = ShapeClass.name
 
   return functionalComponent
 }
