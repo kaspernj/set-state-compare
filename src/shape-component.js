@@ -2,6 +2,7 @@ import {anythingDifferent} from "./diff-utils.js"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
 import useDidMount from "use-did-mount"
+import {useMemo, useState} from "react"
 
 class ShapeComponent {
   constructor(props) {
