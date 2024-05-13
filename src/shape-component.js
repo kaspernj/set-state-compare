@@ -18,6 +18,10 @@ class ShapeComponent {
   }
 
   setState(statesList) {
+    if (typeof statesList == "function") {
+      statesList = statesList(this.state)
+    }
+
     for (const stateName in statesList) {
       const newValue = statesList[stateName]
 
