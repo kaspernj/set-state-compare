@@ -1,6 +1,7 @@
 import {anythingDifferent} from "./diff-utils.js"
 import {useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
+import shared from "./shared.js"
 
 class Shape {
   constructor() {
@@ -41,7 +42,13 @@ class Shape {
       this.setStates[stateName] = (newValue) => {
         if (anythingDifferent(this.state[stateName], newValue)) {
           this.state[stateName] = newValue
-          setState(newValue)
+
+          // Avoid React error if using set-state while rendering (like in a useMemo callback)
+          if (shared.rendering > 0) {
+            setTimeout(() => setState(newValue), 0)
+          } else {
+            setState(newValue)
+          }
         }
       }
     }
