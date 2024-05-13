@@ -1,6 +1,7 @@
 import {anythingDifferent} from "./diff-utils.js"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
+import shared from "./shared.js"
 import {useEffect, useMemo, useState} from "react"
 
 class ShapeComponent {
@@ -47,7 +48,12 @@ class ShapeComponent {
 
           this.state[stateName] = newValue
 
-          setState(newValue)
+          // Avoid React error if using set-state while rendering (like in a useMemo callback)
+          if (shared.rendering > 0) {
+            setTimeout(() => setState(newValue), 0)
+          } else {
+            setState(newValue)
+          }
 
           if (this.componentDidUpdate) {
             this.componentDidUpdate(this.props, prevState)
@@ -76,40 +82,54 @@ class ShapeComponent {
 
 const shapeComponent = (ShapeClass) => {
   const functionalComponent = (props) => {
-    let actualProps
+    try {
+      shared.rendering += 1
 
-    if (ShapeClass.defaultProps) {
-      actualProps = Object.assign({}, ShapeClass.defaultProps, props)
-    } else {
-      actualProps = props
+      let actualProps
+
+      if (ShapeClass.defaultProps) {
+        actualProps = Object.assign({}, ShapeClass.defaultProps, props)
+      } else {
+        actualProps = props
+      }
+
+      if (ShapeClass.propTypes) {
+        PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
+      }
+
+      const shape = useMemo(() => new ShapeClass(actualProps), [])
+      const prevProps = shape.props
+
+      shape.props = actualProps
+
+      if (shape.setup) {
+        shape.setup()
+      }
+
+      if (shape.componentDidUpdate && shape.__firstRenderCompleted && memoCompareProps(shape.props, props)) {
+        shape.componentDidUpdate(prevProps, shape.state)
+      }
+
+      if (shape.componentDidMount || shape.componentWillUnmount) {
+        useEffect(() => {
+          if (shape.componentDidMount) {
+            shape.componentDidMount()
+          }
+
+          return () => {
+            if (shape.componentWillUnmount) {
+              shape.componentWillUnmount()
+            }
+          }
+        }, [])
+      }
+
+      shape.__firstRenderCompleted = true
+
+      return shape.render()
+    } finally {
+      shared.rendering -= 1
     }
-
-    if (ShapeClass.propTypes) {
-      PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
-    }
-
-    const shape = useMemo(() => new ShapeClass(actualProps), [])
-    const prevProps = shape.props
-
-    shape.props = actualProps
-
-    if (shape.setup) {
-      shape.setup()
-    }
-
-    if (shape.componentDidUpdate && shape.__firstRenderCompleted && memoCompareProps(shape.props, props)) {
-      shape.componentDidUpdate(prevProps, shape.state)
-    }
-
-    if (shape.componentDidMount) {
-      useEffect(() => {
-        shape.componentDidMount()
-      }, [])
-    }
-
-    shape.__firstRenderCompleted = true
-
-    return shape.render()
   }
 
   functionalComponent.displayName = ShapeClass.name
