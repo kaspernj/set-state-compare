@@ -9,6 +9,8 @@ class ShapeComponent {
     this.props = props
     this.setStates = {}
     this.state = {}
+    this.__firstRenderCompleted = false
+    this.__renderCallbacks = []
   }
 
   setInstance(variables) {
@@ -17,7 +19,7 @@ class ShapeComponent {
     }
   }
 
-  setState(statesList) {
+  setState(statesList, callback) {
     if (typeof statesList == "function") {
       statesList = statesList(this.state)
     }
@@ -30,6 +32,10 @@ class ShapeComponent {
       }
 
       this.setStates[stateName](newValue)
+    }
+
+    if (callback) {
+      this.__renderCallbacks.push(callback)
     }
   }
 
@@ -126,6 +132,20 @@ const shapeComponent = (ShapeClass) => {
 
       shape.__firstRenderCompleted = true
 
+      // Run any callbacks added by setState(states, callback) once rendering is done
+      useEffect(() => {
+        if (shape.__renderCallbacks) {
+          try {
+            for (const callback of shape.__renderCallbacks) {
+              new Promise(() => callback())
+            }
+          } finally {
+            shape.__renderCallbacks.length = 0
+          }
+        }
+      })
+
+      // Finally render the component and return it
       return shape.render()
     } finally {
       shared.rendering -= 1
