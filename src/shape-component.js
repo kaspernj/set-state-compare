@@ -89,25 +89,25 @@ class ShapeComponent {
 
 const shapeComponent = (ShapeClass) => {
   const functionalComponent = (props) => {
+    // Calculate and validate props
+    let actualProps
+
+    if (ShapeClass.defaultProps) {
+      actualProps = Object.assign({}, ShapeClass.defaultProps, props)
+    } else {
+      actualProps = props
+    }
+
+    if (ShapeClass.propTypes) {
+      PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
+    }
+
+    const shape = useMemo(() => new ShapeClass(actualProps), [])
+    const prevProps = shape.props
+
+    shape.props = actualProps
+
     try {
-      // Calculate and validate props
-      let actualProps
-
-      if (ShapeClass.defaultProps) {
-        actualProps = Object.assign({}, ShapeClass.defaultProps, props)
-      } else {
-        actualProps = props
-      }
-
-      if (ShapeClass.propTypes) {
-        PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
-      }
-
-      const shape = useMemo(() => new ShapeClass(actualProps), [])
-      const prevProps = shape.props
-
-      shape.props = actualProps
-
       // Count rendering to avoid setting state while rendering which causes a console-error from React
       shape.__rendering += 1
       shared.rendering += 1
