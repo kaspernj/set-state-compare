@@ -10,6 +10,7 @@ class ShapeComponent {
     this.setStates = {}
     this.state = {}
     this.__firstRenderCompleted = false
+    this.__rendering = 0
     this.__renderCallbacks = []
   }
 
@@ -55,8 +56,8 @@ class ShapeComponent {
           this.state[stateName] = newValue
 
           // Avoid React error if using set-state while rendering (like in a useMemo callback)
-          if (shared.rendering > 0) {
-            setTimeout(() => setState(newValue), 0)
+          if (this.__rendering > 0) {
+            this.__renderCallbacks.push(() => setState(newValue))
           } else {
             setState(newValue)
           }
@@ -89,8 +90,7 @@ class ShapeComponent {
 const shapeComponent = (ShapeClass) => {
   const functionalComponent = (props) => {
     try {
-      shared.rendering += 1
-
+      // Calculate and validate props
       let actualProps
 
       if (ShapeClass.defaultProps) {
@@ -107,6 +107,10 @@ const shapeComponent = (ShapeClass) => {
       const prevProps = shape.props
 
       shape.props = actualProps
+
+      // Count rendering to avoid setting state while rendering which causes a console-error from React
+      shape.__rendering += 1
+      shared.rendering += 1
 
       if (shape.setup) {
         shape.setup()
@@ -134,20 +138,19 @@ const shapeComponent = (ShapeClass) => {
 
       // Run any callbacks added by setState(states, callback) once rendering is done
       useEffect(() => {
-        if (shape.__renderCallbacks) {
-          try {
-            for (const callback of shape.__renderCallbacks) {
-              new Promise(() => callback())
-            }
-          } finally {
-            shape.__renderCallbacks.length = 0
+        try {
+          for (const callback of shape.__renderCallbacks) {
+            new Promise(() => callback())
           }
+        } finally {
+          shape.__renderCallbacks.length = 0
         }
       })
 
       // Finally render the component and return it
       return shape.render()
     } finally {
+      shape.__rendering -= 1
       shared.rendering -= 1
     }
   }
