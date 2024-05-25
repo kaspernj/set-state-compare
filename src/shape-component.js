@@ -56,7 +56,7 @@ class ShapeComponent {
           this.state[stateName] = newValue
 
           // Avoid React error if using set-state while rendering (like in a useMemo callback)
-          if (this.__rendering > 0) {
+          if (shared.rendering > 0) {
             this.__renderCallbacks.push(() => setState(newValue))
           } else {
             setState(newValue)
@@ -89,28 +89,27 @@ class ShapeComponent {
 
 const shapeComponent = (ShapeClass) => {
   const functionalComponent = (props) => {
-    // Calculate and validate props
-    let actualProps
-
-    if (ShapeClass.defaultProps) {
-      actualProps = Object.assign({}, ShapeClass.defaultProps, props)
-    } else {
-      actualProps = props
-    }
-
-    if (ShapeClass.propTypes) {
-      PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
-    }
-
-    const shape = useMemo(() => new ShapeClass(actualProps), [])
-    const prevProps = shape.props
-
-    shape.props = actualProps
+    // Count rendering to avoid setting state while rendering which causes a console-error from React
+    shared.rendering += 1
 
     try {
-      // Count rendering to avoid setting state while rendering which causes a console-error from React
-      shape.__rendering += 1
-      shared.rendering += 1
+      // Calculate and validate props
+      let actualProps
+
+      if (ShapeClass.defaultProps) {
+        actualProps = Object.assign({}, ShapeClass.defaultProps, props)
+      } else {
+        actualProps = props
+      }
+
+      if (ShapeClass.propTypes) {
+        PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
+      }
+
+      const shape = useMemo(() => new ShapeClass(actualProps), [])
+      const prevProps = shape.props
+
+      shape.props = actualProps
 
       if (shape.setup) {
         shape.setup()
@@ -150,7 +149,6 @@ const shapeComponent = (ShapeClass) => {
       // Finally render the component and return it
       return shape.render()
     } finally {
-      shape.__rendering -= 1
       shared.rendering -= 1
     }
   }
