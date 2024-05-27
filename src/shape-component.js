@@ -103,7 +103,16 @@ const shapeComponent = (ShapeClass) => {
       }
 
       if (ShapeClass.propTypes) {
-        PropTypes.checkPropTypes(ShapeClass.propTypes, actualProps, "prop", ShapeClass.name)
+        const validateProps = {}
+
+        for (const key in actualProps) {
+          // Accessing 'key' will result in a warning in the console
+          if (key == "key") continue
+
+          validateProps[key] = actualProps[key]
+        }
+
+        PropTypes.checkPropTypes(ShapeClass.propTypes, validateProps, "prop", ShapeClass.name)
       }
 
       const shape = useMemo(() => new ShapeClass(actualProps), [])
