@@ -97,7 +97,18 @@ const shapeComponent = (ShapeClass) => {
       let actualProps
 
       if (ShapeClass.defaultProps) {
-        actualProps = Object.assign({}, ShapeClass.defaultProps, props)
+        // Undefined values are removed from the props because they shouldn't override default values
+        const propsWithoutUndefined = Object.assign({}, props)
+
+        for (const key in propsWithoutUndefined) {
+          const value = propsWithoutUndefined[key]
+
+          if (value === undefined) {
+            delete propsWithoutUndefined[key]
+          }
+        }
+
+        actualProps = Object.assign({}, ShapeClass.defaultProps, propsWithoutUndefined)
       } else {
         actualProps = props
       }
