@@ -1,4 +1,5 @@
 import {anythingDifferent} from "./diff-utils.js"
+import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
 import shared from "./shared.js"
@@ -12,6 +13,9 @@ class ShapeComponent {
     this.__firstRenderCompleted = false
     this.__rendering = 0
     this.__renderCallbacks = []
+    this.tt = fetchingObject(this)
+    this.p = fetchingObject(() => this.props)
+    this.s = fetchingObject(this.state)
   }
 
   setInstance(variables) {
