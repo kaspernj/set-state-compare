@@ -11,8 +11,6 @@ class ShapeComponent {
     this.setStates = {}
     this.state = {}
     this.__firstRenderCompleted = false
-    this.__rendering = 0
-    this.__renderCallbacks = []
     this.tt = fetchingObject(this)
     this.p = fetchingObject(() => this.props)
     this.s = fetchingObject(this.state)
@@ -40,7 +38,7 @@ class ShapeComponent {
     }
 
     if (callback) {
-      this.__renderCallbacks.push(callback)
+      shared.renderingCallbacks.push(callback)
     }
   }
 
@@ -61,7 +59,9 @@ class ShapeComponent {
 
           // Avoid React error if using set-state while rendering (like in a useMemo callback)
           if (shared.rendering > 0) {
-            this.__renderCallbacks.push(() => setState(newValue))
+            shared.renderingCallbacks.push(() => {
+              setState(newValue)
+            })
           } else {
             setState(newValue)
           }
@@ -161,12 +161,14 @@ const shapeComponent = (ShapeClass) => {
 
       // Run any callbacks added by setState(states, callback) once rendering is done
       useEffect(() => {
-        try {
-          for (const callback of shape.__renderCallbacks) {
-            new Promise(() => callback())
+        if (shared.rendering == 0) {
+          try {
+            for (const callback of shared.renderingCallbacks) {
+              new Promise(() => callback())
+            }
+          } finally {
+            shared.renderingCallbacks.length = 0
           }
-        } finally {
-          shape.__renderCallbacks.length = 0
         }
       })
 
