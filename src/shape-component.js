@@ -181,6 +181,8 @@ const shapeComponent = (ShapeClass) => {
 
   functionalComponent.displayName = ShapeClass.name
 
+  Object.defineProperty(functionalComponent, "name", {value: ShapeClass.name})
+
   return functionalComponent
 }
 
