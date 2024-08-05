@@ -29,7 +29,8 @@ function arrayDifferent(array1, array2) {
 }
 
 function isSimpleObject(value) {
-  if (typeof value == "object" && value !== null && value.constructor.name == "Object") {
+  // Objects that contain $$typeof are special React objects that have recursive issues
+  if (typeof value == "object" && value !== null && value.constructor.name == "Object" && !value["$$typeof"]) {
     return true
   }
 
