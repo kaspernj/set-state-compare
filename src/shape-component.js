@@ -1,4 +1,5 @@
 import {anythingDifferent} from "./diff-utils.js"
+import {dig} from "diggerize"
 import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
@@ -40,6 +41,20 @@ class ShapeComponent {
     if (callback) {
       shared.renderingCallbacks.push(callback)
     }
+  }
+
+  stylingFor(stylingName, style = {}) {
+    let customStyling = dig(this, "props", "styles", stylingName)
+
+    if (typeof customStyling == "function") {
+      customStyling = customStyling({state: this.state, style})
+    }
+
+    if (customStyling) {
+      return Object.assign(style, customStyling)
+    }
+
+    return style
   }
 
   useState(stateName, defaultValue) {
