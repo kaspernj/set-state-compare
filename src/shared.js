@@ -1,10 +1,10 @@
-if (!window.setStateCompareData) {
-  window.setStateCompareData = {
+if (!globalThis.setStateCompareData) {
+  globalThis.setStateCompareData = {
     rendering: 0,
     renderingCallbacks: []
   }
 }
 
-const shared = window.setStateCompareData
+const shared = globalThis.setStateCompareData
 
 export default shared
