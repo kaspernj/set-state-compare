@@ -8,6 +8,7 @@ import {useEffect, useMemo, useState} from "react"
 
 class ShapeComponent {
   constructor(props) {
+    this.__caches = {}
     this.props = props
     this.setStates = {}
     this.state = {}
@@ -15,6 +16,21 @@ class ShapeComponent {
     this.tt = fetchingObject(this)
     this.p = fetchingObject(() => this.props)
     this.s = fetchingObject(this.state)
+  }
+
+  cache(name, value, dependencies) {
+    const oldDependencies = this.__caches[name]?.dependencies
+
+    if (typeof value == "function") {
+      value = value()
+    }
+
+
+    if (!(name in this.__caches) || anythingDifferent(oldDependencies, dependencies)) {
+      this.__caches[name] = {dependencies, value}
+    }
+
+    return this.__caches[name].value
   }
 
   setInstance(variables) {
