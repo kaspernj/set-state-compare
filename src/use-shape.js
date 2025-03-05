@@ -6,6 +6,7 @@ import shared from "./shared.js"
 class Shape {
   constructor() {
     this.setStates = {}
+    this.setStatesSilent = {}
     this.state = {}
     this.props = {}
     this.meta = {}
@@ -14,7 +15,7 @@ class Shape {
     this.s = fetchingObject(this.state)
   }
 
-  set(statesList) {
+  set(statesList, args) {
     for (const stateName in statesList) {
       const newValue = statesList[stateName]
 
@@ -22,7 +23,7 @@ class Shape {
         throw new Error(`No such state: ${stateName}`)
       }
 
-      this.setStates[stateName](newValue)
+      this.setStates[stateName](newValue, {silent: args?.silent})
     }
   }
 
@@ -39,15 +40,17 @@ class Shape {
 
     if (!(stateName in this.state)) {
       this.state[stateName] = stateValue
-      this.setStates[stateName] = (newValue) => {
+      this.setStates[stateName] = (newValue, args) => {
         if (anythingDifferent(this.state[stateName], newValue)) {
           this.state[stateName] = newValue
 
           // Avoid React error if using set-state while rendering (like in a useMemo callback)
-          if (shared.rendering > 0) {
-            setTimeout(() => setState(newValue), 0)
-          } else {
-            setState(newValue)
+          if (!args?.silent) {
+            if (shared.rendering > 0) {
+              setTimeout(() => setState(newValue), 0)
+            } else {
+              setState(newValue)
+            }
           }
         }
       }

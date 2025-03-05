@@ -78,7 +78,7 @@ class ShapeComponent {
 
     if (!(stateName in this.state)) {
       this.state[stateName] = stateValue
-      this.setStates[stateName] = (newValue) => {
+      this.setStates[stateName] = (newValue, args) => {
         if (anythingDifferent(this.state[stateName], newValue)) {
           let prevState
 
@@ -89,12 +89,14 @@ class ShapeComponent {
           this.state[stateName] = newValue
 
           // Avoid React error if using set-state while rendering (like in a useMemo callback)
-          if (shared.rendering > 0) {
-            shared.renderingCallbacks.push(() => {
+          if (!args?.silent) {
+            if (shared.rendering > 0) {
+              shared.renderingCallbacks.push(() => {
+                setState(newValue)
+              })
+            } else {
               setState(newValue)
-            })
-          } else {
-            setState(newValue)
+            }
           }
 
           if (this.componentDidUpdate) {
