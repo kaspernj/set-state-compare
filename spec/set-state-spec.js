@@ -1,4 +1,4 @@
-import {setState} from "../index.js"
+import {setState} from "../src/index.js"
 
 describe("setState", () => {
   it("sets the state when the object is different", () => {

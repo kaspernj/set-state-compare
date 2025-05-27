@@ -2,7 +2,7 @@
   "name": "set-state-compare",
   "version": "1.0.56",
   "description": "setState for React that compares with the current state and only sets the state if changed.",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "test": "jasmine"
@@ -28,6 +28,6 @@
   },
   "dependencies": {
     "diggerize": "^1.0.5",
-    "fetching-object": ">= 1.0.1"
+    "fetching-object": ">= 1.0.2"
   }
 }

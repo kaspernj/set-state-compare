@@ -1,4 +1,4 @@
-import {arrayDifferent} from "../index.js"
+import {arrayDifferent} from "../src/index.js"
 
 describe("arrayDifferent", () => {
   it("returns true if the length isn't the same", () => {

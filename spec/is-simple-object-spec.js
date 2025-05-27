@@ -1,4 +1,4 @@
-import {isSimpleObject} from "../index.js"
+import {isSimpleObject} from "../src/index.js"
 
 describe("isSimpleObject", () => {
   it("returns true for simple objects", () => {
