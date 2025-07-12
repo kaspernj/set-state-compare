@@ -1,18 +1,31 @@
 import {anythingDifferent} from "./diff-utils.js"
-import {useMemo, useState} from "react"
+import {useEffect, useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
 import shared from "./shared.js"
 
 class Shape {
   constructor() {
+    this.__mounting = true
+    this.__mounted = false
     this.setStates = {}
-    this.setStatesSilent = {}
+    this.__setStatesActual = {}
+    this.__setStatesLater = {}
     this.state = {}
     this.props = {}
     this.meta = {}
     this.m = fetchingObject(() => this.meta)
     this.p = fetchingObject(() => this.props)
     this.s = fetchingObject(this.state)
+  }
+
+  __afterRender() {
+    for (const stateName in this.__setStatesLater) {
+      const stateValue = this.__setStatesLater[stateName]
+      const setState = this.__setStatesActual[stateName]
+
+      setState(stateValue)
+      delete this.__setStatesLater[stateName]
+    }
   }
 
   set(statesList, args) {
@@ -38,16 +51,17 @@ class Shape {
   useState(stateName, defaultValue) {
     const [stateValue, setState] = useState(defaultValue)
 
+    this.__setStatesActual[stateName] = setState
+
     if (!(stateName in this.state)) {
       this.state[stateName] = stateValue
       this.setStates[stateName] = (newValue, args) => {
         if (anythingDifferent(this.state[stateName], newValue)) {
           this.state[stateName] = newValue
 
-          // Avoid React error if using set-state while rendering (like in a useMemo callback)
           if (!args?.silent) {
-            if (shared.rendering > 0) {
-              setTimeout(() => setState(newValue), 0)
+            if (shared.rendering > 0 || !this.__mounted) { // Avoid React error if using set-state while rendering or not mounted (like in a useMemo callback)
+              this.__setStatesLater[stateName] = newValue
             } else {
               setState(newValue)
             }
@@ -97,6 +111,16 @@ const useShape = (props, opts) => {
     },
     []
   )
+
+  useEffect(() => {
+    shape.__mounting = false
+    shape.__mounted = true
+    shape.__afterRender()
+
+    return () => {
+      shape.__mounted = false
+    }
+  }, [])
 
   shape.updateProps(props)
 
