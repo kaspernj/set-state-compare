@@ -9,6 +9,8 @@ import {useEffect, useMemo, useState} from "react"
 class ShapeComponent {
   constructor(props) {
     this.__caches = {}
+    this.__mounting = true
+    this.__mounted = false
     this.props = props
     this.setStates = {}
     this.state = {}
@@ -24,7 +26,6 @@ class ShapeComponent {
     if (typeof value == "function") {
       value = value()
     }
-
 
     if (!(name in this.__caches) || anythingDifferent(oldDependencies, dependencies)) {
       this.__caches[name] = {dependencies, value}
@@ -176,19 +177,22 @@ const shapeComponent = (ShapeClass) => {
         shape.componentDidUpdate(prevProps, shape.state)
       }
 
-      if (shape.componentDidMount || shape.componentWillUnmount) {
-        useEffect(() => {
-          if (shape.componentDidMount) {
-            shape.componentDidMount()
-          }
+      useEffect(() => {
+        shape.__mounting = false
+        shape.__mounted = true
 
-          return () => {
-            if (shape.componentWillUnmount) {
-              shape.componentWillUnmount()
-            }
+        if (shape.componentDidMount) {
+          shape.componentDidMount()
+        }
+
+        return () => {
+          shape.__mounted = false
+
+          if (shape.componentWillUnmount) {
+            shape.componentWillUnmount()
           }
-        }, [])
-      }
+        }
+      }, [])
 
       shape.__firstRenderCompleted = true
 
