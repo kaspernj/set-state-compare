@@ -7,6 +7,9 @@ import shared from "./shared.js"
 import {useEffect, useMemo, useState} from "react"
 
 class ShapeComponent {
+  /**
+   * @param {Record<string, any>} props
+   */
   constructor(props) {
     this.__caches = {}
     this.__mounting = true
@@ -20,6 +23,12 @@ class ShapeComponent {
     this.s = fetchingObject(this.state)
   }
 
+  /**
+   * @param {string} name
+   * @param {any} value
+   * @param {any[]} dependencies
+   * @returns {any}
+   */
   cache(name, value, dependencies) {
     const oldDependencies = this.__caches[name]?.dependencies
 
@@ -34,12 +43,21 @@ class ShapeComponent {
     return this.__caches[name].value
   }
 
+  /**
+   * @param {Record<string, any>} variables
+   * @returns {void}
+   */
   setInstance(variables) {
     for (const name in variables) {
       this[name] = variables[name]
     }
   }
 
+  /**
+   * @param {Record<string, any>} statesList
+   * @param {function() : void} callback
+   * @returns {void}
+   */
   setState(statesList, callback) {
     if (typeof statesList == "function") {
       statesList = statesList(this.state)
@@ -60,6 +78,22 @@ class ShapeComponent {
     }
   }
 
+  /**
+   * @param {Record<string, any>} statesList
+   * @param {function() : void} callback
+   * @returns {void}
+   */
+  setStateAsync(statesList) {
+    return new Promise((resolve) => {
+      this.setState(statesList, resolve)
+    })
+  }
+
+  /**
+   * @param {string} stylingName
+   * @param {Record<string, any>} style
+   * @returns {Record<string, any>}
+   */
   stylingFor(stylingName, style = {}) {
     let customStyling = dig(this, "props", "styles", stylingName)
 
@@ -74,6 +108,11 @@ class ShapeComponent {
     return style
   }
 
+  /**
+   * @param {string} stateName
+   * @param {any} defaultValue
+   * @returns {any}
+   */
   useState(stateName, defaultValue) {
     const [stateValue, setState] = useState(defaultValue)
 
@@ -110,6 +149,10 @@ class ShapeComponent {
     return this.setStates[stateName]
   }
 
+  /**
+   * @param {Array<string>|Record<string, any>} statesList
+   * @returns {void}
+   */
   useStates(statesList) {
     if (Array.isArray(statesList)) {
       for(const stateName of statesList) {
@@ -125,7 +168,15 @@ class ShapeComponent {
   }
 }
 
+/**
+ * @param {typeof ShapeComponent} ShapeClass
+ * @returns {Function} React functional component that renders the ShapeClass
+ */
 const shapeComponent = (ShapeClass) => {
+  /**
+   * @param {Record<string, any>} props
+   * @returns {JSX.Element} React element that renders the ShapeClass
+   */
   const functionalComponent = (props) => {
     // Count rendering to avoid setting state while rendering which causes a console-error from React
     shared.rendering += 1
