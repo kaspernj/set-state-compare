@@ -18,7 +18,7 @@
     "set",
     "state"
   ],
-  "author": "Kasper Stöckel <k@spernj.org>",
+  "author": "Kasper Stöckel <kasper@diestoeckels.de>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/kaspernj/set-state-compare/issues"
