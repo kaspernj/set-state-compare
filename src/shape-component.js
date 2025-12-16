@@ -6,7 +6,22 @@ import PropTypes from "prop-types"
 import shared from "./shared.js"
 import {useEffect, useMemo, useState} from "react"
 
+/**
+ * @typedef {Object} ShapeLifecycleHooks
+ * @property {(prevProps: Record<string, any>, prevState: Record<string, any>) => void} [componentDidUpdate]
+ * @property {() => void} [componentDidMount]
+ * @property {() => void} [componentWillUnmount]
+ * @property {{children: [import("react").ReactNode]}} props
+ * @property {() => void} [setup]
+ */
+
 class ShapeComponent {
+  /** @type {Record<string, any> | undefined} */
+  static defaultProps = undefined
+
+  /** @type {Record<string, import("prop-types").Validator>} propTypes */
+  static propTypes = undefined
+
   /**
    * @param {Record<string, any>} props
    */
@@ -80,8 +95,7 @@ class ShapeComponent {
 
   /**
    * @param {Record<string, any>} statesList
-   * @param {function() : void} callback
-   * @returns {void}
+   * @returns {Promise<void>}
    */
   setStateAsync(statesList) {
     return new Promise((resolve) => {
@@ -122,6 +136,7 @@ class ShapeComponent {
         if (anythingDifferent(this.state[stateName], newValue)) {
           let prevState
 
+          // @ts-expect-error
           if (this.componentDidUpdate) {
             prevState = Object.assign({}, this.state)
           }
@@ -139,7 +154,9 @@ class ShapeComponent {
             }
           }
 
+          // @ts-expect-error
           if (this.componentDidUpdate) {
+            // @ts-expect-error
             this.componentDidUpdate(this.props, prevState)
           }
         }
@@ -175,7 +192,7 @@ class ShapeComponent {
 const shapeComponent = (ShapeClass) => {
   /**
    * @param {Record<string, any>} props
-   * @returns {JSX.Element} React element that renders the ShapeClass
+   * @returns {import("react").ReactNode} React element that renders the ShapeClass
    */
   const functionalComponent = (props) => {
     // Count rendering to avoid setting state while rendering which causes a console-error from React

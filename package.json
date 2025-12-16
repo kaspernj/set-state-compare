@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test": "jasmine"
+    "test": "jasmine",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -24,10 +25,16 @@
   "build": "npx babel src --out-dir dist",
   "homepage": "https://github.com/kaspernj/set-state-compare#readme",
   "devDependencies": {
-    "jasmine": "^5.0.0"
+    "@types/jasmine": "^5.1.13",
+    "jasmine": "^5.0.0",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "diggerize": "^1.0.5",
     "fetching-object": ">= 1.0.2"
+  },
+  "peerDependencies": {
+    "prop-types": ">= 15.8.1",
+    "react": ">= 18.3.0"
   }
 }

@@ -23,7 +23,10 @@ describe("setState", () => {
   })
 
   it("doesnt change anything when nothing changed and passed a function", () => {
-    let setStateResult = "shouldHaveChanged"
+    let setStateResult = {
+      firstName: "Mickey",
+      lastName: "Mouse"
+    }
 
     const fakeComponent = {
       state: {
@@ -33,7 +36,7 @@ describe("setState", () => {
       setState: function(callback) {
         setStateResult = callback(this.state)
 
-        if (setStateResult && setStateResult != "shouldHaveChanged") {
+        if (setStateResult && setStateResult.firstName != "Mickey") {
           this.state = setStateResult
         }
       }
@@ -49,20 +52,23 @@ describe("setState", () => {
   })
 
   it("doesnt change anything when nothing changed and passed a function", () => {
-    let setStateResult = "shouldHaveChanged"
+    let setStateResult = {
+      firstName: "Mickey",
+      lastName: "Mouse"
+    }
 
     const fakeComponent = {
       state: {
         firstName: "Donald",
         lastName: "Duck"
       },
-      setState: function(callback) {
+      setState: /** @returns {() => {firstName: string, lastName: string}} */ (function(callback) {
         setStateResult = callback(this.state)
 
-        if (setStateResult && setStateResult != "shouldHaveChanged") {
+        if (setStateResult && setStateResult.firstName != "Mickey") {
           this.state = setStateResult
         }
-      }
+      })
     }
 
     setState(fakeComponent, () => ({

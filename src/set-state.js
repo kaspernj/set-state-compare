@@ -1,5 +1,10 @@
 import {simpleObjectDifferent} from "./diff-utils.js"
 
+/**
+ * @param {any} component
+ * @param {Record<string, any> | function(Record<string, any>): Record<string, any>} state
+ * @returns {Promise<void>} Resolves when the state is set or skipped.
+ */
 export default function setState(component, state, callback) {
   return new Promise((resolve) => {
     let finish

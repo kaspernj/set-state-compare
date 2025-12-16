@@ -1,5 +1,11 @@
 import {simpleObjectValuesDifferent} from "./diff-utils.js"
 
+/**
+ * @param {Record<string, any>} prevProps
+ * @param {Record<string, any>} nextProps
+ * @param {boolean} [debug]
+ * @returns {boolean}
+ */
 const memoCompareProps = (prevProps, nextProps, debug) => {
   if (debug) {
     console.log("memoCompareProps", {prevProps, nextProps})
@@ -26,6 +32,11 @@ const memoCompareProps = (prevProps, nextProps, debug) => {
   return !result
 }
 
+/**
+ * @param {Record<string, any>} prevProps
+ * @param {Record<string, any>} nextProps
+ * @returns {boolean}
+ */
 const memoComparePropsWithDebug = (prevProps, nextProps) => memoCompareProps(prevProps, nextProps, true)
 
 export {memoComparePropsWithDebug}
