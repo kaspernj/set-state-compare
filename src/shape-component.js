@@ -7,7 +7,7 @@ import shared from "./shared.js"
 import {useEffect, useMemo, useState} from "react"
 
 /**
- * @typedef {Object} ShapeLifecycleHooks
+ * @typedef {object} ShapeLifecycleHooks
  * @property {(prevProps: Record<string, any>, prevState: Record<string, any>) => void} [componentDidUpdate]
  * @property {() => void} [componentDidMount]
  * @property {() => void} [componentWillUnmount]
@@ -19,7 +19,7 @@ class ShapeComponent {
   /** @type {Record<string, any> | undefined} */
   static defaultProps = undefined
 
-  /** @type {Record<string, import("prop-types").Validator>} propTypes */
+  /** @type {Record<string, import("prop-types").Validator>} */
   static propTypes = undefined
 
   /**
@@ -187,7 +187,7 @@ class ShapeComponent {
 
 /**
  * @param {typeof ShapeComponent} ShapeClass
- * @returns {Function} React functional component that renders the ShapeClass
+ * @returns {function(Record<string, any>): import("react").ReactNode} React functional component that renders the ShapeClass
  */
 const shapeComponent = (ShapeClass) => {
   /**

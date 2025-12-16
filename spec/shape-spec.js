@@ -1,7 +1,22 @@
 import Shape from "../src/shape.js"
 
+/**
+ * @typedef {object} fakeComponentType
+ * @property {() => void} shapeDidUpdate
+ * @property {() => void} shapeUpdated
+ * @property {() => void} forceUpdate
+ * @property {{firstName: string, lastName: string}} state
+ * @property {number} shapeDidUpdateCalled
+ * @property {number} shapeUpdatedCalled
+ */
+
+/**
+ * @returns {fakeComponentType}
+ */
 function spawnFakeComponent() {
   const fakeComponent = {
+    shapeDidUpdateCalled: 0,
+    shapeUpdatedCalled: 0,
     shapeDidUpdate() {
       if (this.shapeDidUpdateCalled === undefined) {
         this.shapeDidUpdateCalled = 0

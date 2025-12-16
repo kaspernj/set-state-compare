@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
+    "lint": "eslint",
     "test": "jasmine",
     "typecheck": "tsc --noEmit"
   },
@@ -25,7 +26,12 @@
   "build": "npx babel src --out-dir dist",
   "homepage": "https://github.com/kaspernj/set-state-compare#readme",
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/jasmine": "^5.1.13",
+    "eslint": "^9.39.2",
+    "eslint-plugin-jasmine": "^4.2.2",
+    "eslint-plugin-jsdoc": "^61.5.0",
+    "globals": "^16.5.0",
     "jasmine": "^5.0.0",
     "typescript": "^5.9.3"
   },

@@ -58,6 +58,7 @@ class Shape {
   /**
    * @param {string} stateName
    * @param {any} defaultValue
+   * @returns {void}
    */
   useState(stateName, defaultValue) {
     const [stateValue, setState] = useState(defaultValue)
@@ -118,8 +119,9 @@ const shapeComponent = (ShapeClass) => {
  * @param {Record<string, any>} props
  * @param {object} opts
  * @param {typeof Shape} opts.shapeClass
+ * @returns {Shape}
  */
-const useShape = (props, opts) => {
+function useShape(props, opts) {
   const shape = useMemo(
     () => {
       const ShapeClass = opts?.shapeClass || Shape

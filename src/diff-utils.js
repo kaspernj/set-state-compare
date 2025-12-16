@@ -21,8 +21,8 @@ function anythingDifferent(value1, value2, debug) {
 }
 
 /**
- * @param {array} array1
- * @param {array} array2
+ * @param {any[]} array1
+ * @param {any[]} array2
  * @returns {boolean}
  */
 function arrayDifferent(array1, array2) {
@@ -72,6 +72,7 @@ function simpleObjectDifferent(object1, object2, checkLength) {
  * @param {object} [args]
  * @param {boolean} [args.debug]
  * @param {(string) => boolean} [args.ignore]
+ * @returns {boolean}
  */
 function simpleObjectValuesDifferent(object1, object2, args) {
   for (const key in object1) {
