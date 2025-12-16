@@ -57,7 +57,7 @@ describe("shape", () => {
       promises.push(new Promise((resolve) => {
         setTimeout(
           () => {
-            shape.set({firstName: "Kasper"}, () => {
+            shape.set({firstName: "Storm"}, () => {
               calledCount++
               resolve()
             })
@@ -80,6 +80,7 @@ describe("shape", () => {
 
     await Promise.all(promises)
 
+    // @ts-expect-error
     expect(shape.firstName).toBe("Christina")
     expect(calledCount).toBe(30)
   })

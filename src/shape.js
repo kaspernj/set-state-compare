@@ -1,5 +1,6 @@
 import {simpleObjectValuesDifferent} from "./diff-utils.js"
 
+/** @type {{mode: string, renderComponents: Shape[], renderLaterTimeout: number}} */
 const settings = {
   mode: "queuedForceUpdate",
   renderComponents: [],
@@ -18,6 +19,9 @@ const callRenders = () => {
 }
 
 export default class Shape {
+  /**
+   * @param {string} newMode
+   */
   static setMode(newMode) {
     if (!validModes.includes(newMode)) {
       throw new Error(`Invalid mode: ${newMode}`)
@@ -26,6 +30,10 @@ export default class Shape {
     settings.mode = newMode
   }
 
+  /**
+   * @param {any} component
+   * @param {Record<string, any>} [data]
+   */
   constructor(component, data = {}) {
     this.__component = component
     this.__stateCallbacks = []
@@ -41,6 +49,11 @@ export default class Shape {
     }
   }
 
+  /**
+   * @param {Record<string, any>} newData
+   * @param {function(): void | undefined} callback
+   * @returns {void}
+   */
   set(newData, callback) {
     if (simpleObjectValuesDifferent(newData, this)) {
       if (callback) {
@@ -60,6 +73,12 @@ export default class Shape {
     }
   }
 
+  /**
+   * @private
+   * @param {Record<string, any>} newData
+   * @param {boolean} [skipDidUpdate]
+   * @returns {void}
+   */
   __setDataOnThis(newData, skipDidUpdate) {
     let prevShape
 
@@ -76,6 +95,10 @@ export default class Shape {
     }
   }
 
+  /**
+   * @param {Record<string, any>} newData
+   * @returns {Promise<void>}
+   */
   setAsync(newData) {
     return new Promise((resolve, reject) => {
       try {

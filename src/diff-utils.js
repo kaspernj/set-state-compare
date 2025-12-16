@@ -1,3 +1,9 @@
+/**
+ * @param {any} value1
+ * @param {any} value2
+ * @param {boolean} [debug]
+ * @returns {boolean}
+ */
 function anythingDifferent(value1, value2, debug) {
   if (Array.isArray(value1) && Array.isArray(value2)) {
     return arrayDifferent(value1, value2)
@@ -14,6 +20,11 @@ function anythingDifferent(value1, value2, debug) {
   return false
 }
 
+/**
+ * @param {array} array1
+ * @param {array} array2
+ * @returns {boolean}
+ */
 function arrayDifferent(array1, array2) {
   if (array1.length != array2.length) {
     return true
@@ -28,6 +39,10 @@ function arrayDifferent(array1, array2) {
   return false
 }
 
+/**
+ * @param {any} value
+ * @returns {boolean}
+ */
 function isSimpleObject(value) {
   // Objects that contain $$typeof are special React objects that have recursive issues
   if (typeof value == "object" && value !== null && value.constructor.name == "Object" && !value["$$typeof"]) {
@@ -37,6 +52,12 @@ function isSimpleObject(value) {
   return false
 }
 
+/**
+ * @param {object} object1
+ * @param {object} object2
+ * @param {boolean} checkLength
+ * @returns {boolean}
+ */
 function simpleObjectDifferent(object1, object2, checkLength) {
   if (checkLength && Object.keys(object1).length !== Object.keys(object2).length) {
     return true
@@ -45,6 +66,13 @@ function simpleObjectDifferent(object1, object2, checkLength) {
   return simpleObjectValuesDifferent(object1, object2)
 }
 
+/**
+ * @param {any} object1
+ * @param {any} object2
+ * @param {object} [args]
+ * @param {boolean} [args.debug]
+ * @param {(string) => boolean} [args.ignore]
+ */
 function simpleObjectValuesDifferent(object1, object2, args) {
   for (const key in object1) {
     if (args?.ignore && args.ignore({key})) {

@@ -28,6 +28,11 @@ class Shape {
     }
   }
 
+  /**
+   * @param {Record<string, any>} statesList
+   * @param {object} [args]
+   * @param {boolean} [args.silent]
+   */
   set(statesList, args) {
     for (const stateName in statesList) {
       const newValue = statesList[stateName]
@@ -40,14 +45,20 @@ class Shape {
     }
   }
 
+  /** @param {Record<string, any>} newMeta */
   updateMeta(newMeta) {
     Object.assign(this.meta, newMeta)
   }
 
+  /** @param {Record<string, any>} newProps */
   updateProps(newProps) {
     this.props = newProps
   }
 
+  /**
+   * @param {string} stateName
+   * @param {any} defaultValue
+   */
   useState(stateName, defaultValue) {
     const [stateValue, setState] = useState(defaultValue)
 
@@ -73,6 +84,7 @@ class Shape {
     return this.setStates[stateName]
   }
 
+  /** @param {Record<string, any> | string[]} statesList */
   useStates(statesList) {
     if (Array.isArray(statesList)) {
       for(const stateName of statesList) {
@@ -102,6 +114,11 @@ const shapeComponent = (ShapeClass) => {
   }
 }
 
+/**
+ * @param {Record<string, any>} props
+ * @param {object} opts
+ * @param {typeof Shape} opts.shapeClass
+ */
 const useShape = (props, opts) => {
   const shape = useMemo(
     () => {
