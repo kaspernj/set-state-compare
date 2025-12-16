@@ -3,3 +3,4 @@ before_script:
 script:
   - npm test
   - npm run typecheck
+  - npm run lint

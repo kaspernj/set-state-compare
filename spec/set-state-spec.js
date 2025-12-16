@@ -51,7 +51,7 @@ describe("setState", () => {
     expect(setStateResult).toBe(null)
   })
 
-  it("doesnt change anything when nothing changed and passed a function", () => {
+  it("doesnt change anything when nothing changed and passed a function 2", () => {
     let setStateResult = {
       firstName: "Mickey",
       lastName: "Mouse"
@@ -62,7 +62,7 @@ describe("setState", () => {
         firstName: "Donald",
         lastName: "Duck"
       },
-      setState: /** @returns {() => {firstName: string, lastName: string}} */ (function(callback) {
+      setState: /** @param {() => {firstName: string, lastName: string}} callback */ (function(callback) {
         setStateResult = callback(this.state)
 
         if (setStateResult && setStateResult.firstName != "Mickey") {
