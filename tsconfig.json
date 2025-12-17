@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
+    "allowJs": true,
     "checkJs": true,
-    "noEmit": true,
+    "declaration": true,
+    "declarationMap": true,
     "target": "ES2024",
 
     "moduleResolution": "nodenext",
     "module": "nodenext",
+    "outDir": "build",
 
     "lib": ["dom", "ES2024"],
     "types": ["jasmine"]
-  }
+  },
+  "include": ["src/**/*"]
 }
