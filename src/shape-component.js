@@ -70,7 +70,7 @@ class ShapeComponent {
 
   /**
    * @param {Record<string, any>} statesList
-   * @param {function() : void} callback
+   * @param {function() : void} [callback]
    * @returns {void}
    */
   setState(statesList, callback) {
