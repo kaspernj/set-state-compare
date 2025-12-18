@@ -39,20 +39,25 @@ class ShapeComponent {
   }
 
   /**
+   * @template T
    * @param {string} name
-   * @param {any} value
+   * @param {T | (() => T)} value
    * @param {any[]} [dependencies]
-   * @returns {any}
+   * @returns {T}
    */
   cache(name, value, dependencies) {
+    let actualValue
     const oldDependencies = this.__caches[name]?.dependencies
 
     if (typeof value == "function") {
-      value = value()
+      // @ts-expect-error
+      actualValue = value()
+    } else {
+      actualValue = value
     }
 
     if (!(name in this.__caches) || anythingDifferent(oldDependencies, dependencies)) {
-      this.__caches[name] = {dependencies, value}
+      this.__caches[name] = {dependencies, value: actualValue}
     }
 
     return this.__caches[name].value
