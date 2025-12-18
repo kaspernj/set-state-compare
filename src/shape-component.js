@@ -41,7 +41,7 @@ class ShapeComponent {
   /**
    * @param {string} name
    * @param {any} value
-   * @param {any[]} dependencies
+   * @param {any[]} [dependencies]
    * @returns {any}
    */
   cache(name, value, dependencies) {
