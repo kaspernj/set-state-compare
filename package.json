@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "diggerize": "^1.0.5",
-    "fetching-object": ">= 1.0.2"
+    "fetching-object": ">= 1.0.5"
   },
   "peerDependencies": {
     "prop-types": ">= 15.8.1",
