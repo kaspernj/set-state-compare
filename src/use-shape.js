@@ -10,9 +10,16 @@ class Shape {
     this.setStates = {}
     this.__setStatesActual = {}
     this.__setStatesLater = {}
+
+    /** @type {Record<string, any>} */
     this.state = {}
+
+    /** @type {Record<string, any>} */
     this.props = {}
+
+    /** @type {Record<string, any>} */
     this.meta = {}
+
     this.m = fetchingObject(() => this.meta)
     this.p = fetchingObject(() => this.props)
     this.s = fetchingObject(this.state)
@@ -101,6 +108,10 @@ class Shape {
   }
 }
 
+/**
+ * @param {typeof Shape} ShapeClass
+ * @returns {import("react").ReactElement | null}
+ */
 const shapeComponent = (ShapeClass) => {
   return (props) => {
     const shape = useMemo(() => new ShapeClass(), [])
@@ -117,11 +128,12 @@ const shapeComponent = (ShapeClass) => {
 
 /**
  * @param {Record<string, any>} props
- * @param {object} opts
- * @param {typeof Shape} opts.shapeClass
+ * @param {object} [opts]
+ * @param {typeof Shape} [opts.shapeClass]
  * @returns {Shape}
  */
 function useShape(props, opts) {
+  /** @type {Shape} */
   const shape = useMemo(
     () => {
       const ShapeClass = opts?.shapeClass || Shape
