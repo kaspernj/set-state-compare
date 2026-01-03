@@ -1,4 +1,5 @@
 import {simpleObjectValuesDifferent} from "./diff-utils.js"
+import shared from "./shared.js"
 
 /** @type {{mode: string, renderComponents: Shape[], renderLaterTimeout: number}} */
 const settings = {
@@ -137,10 +138,6 @@ export default class Shape {
   }
 
   __shapeRenderLater() {
-    if (settings.renderLaterTimeout) {
-      clearTimeout(settings.renderLaterTimeout)
-    }
-
     const renderPosition = settings.renderComponents.indexOf(this)
 
     if (renderPosition > -1) {
@@ -148,7 +145,14 @@ export default class Shape {
     }
 
     settings.renderComponents.push(this)
-    settings.renderLaterTimeout = setTimeout(callRenders, 0)
+
+    if (!settings.renderLaterTimeout) {
+      settings.renderLaterTimeout = shared.scheduleAfterPaint(() => {
+        settings.renderLaterTimeout = undefined
+        callRenders()
+      })
+    }
+
     this.renderPending = true
   }
 }

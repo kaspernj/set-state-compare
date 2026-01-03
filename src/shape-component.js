@@ -94,7 +94,7 @@ class ShapeComponent {
     }
 
     if (callback) {
-      shared.renderingCallbacks.push(callback)
+      shared.enqueueRenderCallback(callback)
     }
   }
 
@@ -151,9 +151,7 @@ class ShapeComponent {
           // Avoid React error if using set-state while rendering (like in a useMemo callback)
           if (!args?.silent) {
             if (shared.rendering > 0) {
-              shared.renderingCallbacks.push(() => {
-                setState(newValue)
-              })
+              shared.enqueueRenderCallback(() => setState(newValue))
             } else {
               setState(newValue)
             }
@@ -269,23 +267,12 @@ const shapeComponent = (ShapeClass) => {
 
       shape.__firstRenderCompleted = true
 
-      // Run any callbacks added by setState(states, callback) once rendering is done
-      useEffect(() => {
-        if (shared.rendering == 0) {
-          try {
-            for (const callback of shared.renderingCallbacks) {
-              new Promise(() => callback())
-            }
-          } finally {
-            shared.renderingCallbacks.length = 0
-          }
-        }
-      })
-
       // Finally render the component and return it
       return shape.render()
     } finally {
-      shared.rendering -= 1
+      shared.scheduleAfterPaint(() => {
+        shared.rendering = Math.max(0, shared.rendering - 1)
+      })
     }
   }
 
