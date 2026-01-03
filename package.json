@@ -1,8 +1,10 @@
 {
   "name": "set-state-compare",
-  "version": "1.0.65",
+  "version": "1.0.66",
   "description": "setState for React that compares with the current state and only sets the state if changed.",
-  "files": ["build/**"],
+  "files": [
+    "build/**"
+  ],
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "type": "module",
