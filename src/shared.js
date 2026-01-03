@@ -9,6 +9,18 @@ if (!globalThis.setStateCompareData) {
 
 const shared = globalThis.setStateCompareData
 
+if (!shared.afterPaintCallbacks) {
+  shared.afterPaintCallbacks = []
+}
+
+if (!("afterPaintHandle" in shared)) {
+  shared.afterPaintHandle = undefined
+}
+
+if (!shared.renderingCallbacks) {
+  shared.renderingCallbacks = []
+}
+
 if (!shared.scheduleAfterPaint) {
   shared.scheduleAfterPaint = (callback) => {
     shared.afterPaintCallbacks.push(callback)
