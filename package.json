@@ -7,6 +7,7 @@
   "types": "build/index.d.ts",
   "type": "module",
   "scripts": {
+    "release:patch": "npm version patch -m \"Bump version to %s\" && git push --follow-tags && npm whoami || npm login && npm publish",
     "build": "rm -rf build && tsc",
     "lint": "eslint",
     "prepublishOnly": "npm run build",
