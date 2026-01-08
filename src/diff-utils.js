@@ -21,6 +21,46 @@ function anythingDifferent(value1, value2, debug) {
 }
 
 /**
+ * @param {any} value1
+ * @param {any} value2
+ * @param {boolean} [debug]
+ * @returns {boolean}
+ */
+function referenceDifferent(value1, value2, debug) {
+  const isSame = Object.is(value1, value2)
+
+  if (!isSame && debug) {
+    console.log(`Value 1 ${value1} wasn't the same as value 2 ${value2}`)
+  }
+
+  return !isSame
+}
+
+/**
+ * @param {any[]} array1
+ * @param {any[]} array2
+ * @param {boolean} [debug]
+ * @returns {boolean}
+ */
+function arrayReferenceDifferent(array1, array2, debug) {
+  if (array1.length !== array2.length) {
+    if (debug) {
+      console.log(`Array length ${array1.length} wasn't the same as ${array2.length}`)
+    }
+
+    return true
+  }
+
+  for (let index = 0; index < array1.length; index += 1) {
+    if (referenceDifferent(array1[index], array2[index], debug)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
  * @param {any[]} array1
  * @param {any[]} array2
  * @returns {boolean}
@@ -104,7 +144,9 @@ function simpleObjectValuesDifferent(object1, object2, args) {
 export {
   anythingDifferent,
   arrayDifferent,
+  arrayReferenceDifferent,
   isSimpleObject,
+  referenceDifferent,
   simpleObjectDifferent,
   simpleObjectValuesDifferent
 }

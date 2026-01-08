@@ -1,4 +1,4 @@
-import {anythingDifferent} from "./diff-utils.js"
+import {arrayReferenceDifferent, referenceDifferent} from "./diff-utils.js"
 import {dig} from "diggerize"
 import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
@@ -56,7 +56,7 @@ class ShapeComponent {
       actualValue = value
     }
 
-    if (!(name in this.__caches) || anythingDifferent(oldDependencies, dependencies)) {
+    if (!(name in this.__caches) || arrayReferenceDifferent(oldDependencies || [], dependencies || [])) {
       this.__caches[name] = {dependencies, value: actualValue}
     }
 
@@ -138,7 +138,7 @@ class ShapeComponent {
     if (!(stateName in this.state)) {
       this.state[stateName] = stateValue
       this.setStates[stateName] = (newValue, args) => {
-        if (anythingDifferent(this.state[stateName], newValue)) {
+        if (referenceDifferent(this.state[stateName], newValue)) {
           let prevState
 
           // @ts-expect-error
