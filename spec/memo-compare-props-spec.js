@@ -1,4 +1,4 @@
-import memoCompareProps from "../src/memo-compare-props.js"
+import memoCompareProps, {memoComparePropsWithDebug} from "../src/memo-compare-props.js"
 
 describe("memoCompareProps", () => {
   it("returns true when given fewer props than before", () => {
@@ -65,5 +65,24 @@ describe("memoCompareProps", () => {
     const result = memoCompareProps(prevProps, nextProps)
 
     expect(result).toBeFalse()
+  })
+
+  it("returns true when props are identical and logs debug output", () => {
+    const prevProps = {
+      firstName: "Kasper",
+      lastName: "Stöckel"
+    }
+
+    const nextProps = {
+      firstName: "Kasper",
+      lastName: "Stöckel"
+    }
+
+    spyOn(console, "log")
+
+    const result = memoComparePropsWithDebug(prevProps, nextProps)
+
+    expect(result).toBeTrue()
+    expect(console.log).toHaveBeenCalledWith("memoCompareProps", {prevProps, nextProps})
   })
 })

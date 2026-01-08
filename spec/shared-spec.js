@@ -42,4 +42,10 @@ describe("shared scheduling", () => {
     expect(calls).toEqual([1, 2])
     expect(shared.renderingCallbacks.length).toBe(0)
   })
+
+  it("returns early when there are no render callbacks", () => {
+    shared.renderingCallbacks = []
+
+    expect(() => shared.flushRenderingCallbacks()).not.toThrow()
+  })
 })
