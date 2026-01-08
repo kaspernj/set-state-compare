@@ -22,6 +22,9 @@ class ShapeComponent {
   /** @type {Record<string, import("prop-types").Validator>} */
   static propTypes = undefined
 
+  /** @type {Record<string, {dependencies?: any[], value: any}> | undefined} */
+  static __staticCaches = undefined
+
   /**
    * @param {Record<string, any>} props
    */
