@@ -1,4 +1,4 @@
-import {anythingDifferent} from "./diff-utils.js"
+import {referenceDifferent} from "./diff-utils.js"
 import {useEffect, useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
 import shared from "./shared.js"
@@ -75,7 +75,7 @@ class Shape {
     if (!(stateName in this.state)) {
       this.state[stateName] = stateValue
       this.setStates[stateName] = (newValue, args) => {
-        if (anythingDifferent(this.state[stateName], newValue)) {
+        if (referenceDifferent(this.state[stateName], newValue)) {
           this.state[stateName] = newValue
 
           if (!args?.silent) {
