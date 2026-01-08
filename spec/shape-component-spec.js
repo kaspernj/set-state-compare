@@ -43,6 +43,21 @@ describe("shapeComponent", () => {
     expect(thirdValue).not.toBe(firstValue)
   })
 
+  it("caches values on the class with cacheStatic", () => {
+    class StaticShape extends ShapeComponent {}
+
+    const shared = {name: "Donald"}
+    const shapeA = new StaticShape({})
+    const shapeB = new StaticShape({})
+
+    const firstValue = shapeA.cacheStatic("styles", () => ({id: 1}), [shared, 1])
+    const secondValue = shapeB.cacheStatic("styles", () => ({id: 2}), [shared, 1])
+    const thirdValue = shapeB.cacheStatic("styles", () => ({id: 3}), [{name: "Donald"}, 1])
+
+    expect(secondValue).toBe(firstValue)
+    expect(thirdValue).not.toBe(firstValue)
+  })
+
   it("re-renders for new object references but skips identical primitives", () => {
     /** @type {ShapeComponent | undefined} */
     let shapeInstance
