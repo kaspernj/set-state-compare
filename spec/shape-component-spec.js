@@ -58,6 +58,20 @@ describe("shapeComponent", () => {
     expect(thirdValue).not.toBe(firstValue)
   })
 
+  it("does not evaluate cacheStatic supplier when dependencies are unchanged", () => {
+    class StaticShape extends ShapeComponent {}
+
+    const shared = {name: "Donald"}
+    const shape = new StaticShape({})
+
+    const supplier = jasmine.createSpy("supplier").and.returnValue({id: 1})
+
+    shape.cacheStatic("styles", supplier, [shared, 1])
+    shape.cacheStatic("styles", supplier, [shared, 1])
+
+    expect(supplier.calls.count()).toBe(1)
+  })
+
   it("re-renders for new object references but skips identical primitives", () => {
     /** @type {ShapeComponent | undefined} */
     let shapeInstance

@@ -74,7 +74,6 @@ class ShapeComponent {
    * @returns {T}
    */
   cacheStatic(name, value, dependencies) {
-    let actualValue
     const constructor = /** @type {typeof ShapeComponent} */ (this.constructor)
 
     if (!constructor.__staticCaches) {
@@ -83,14 +82,19 @@ class ShapeComponent {
 
     const oldDependencies = constructor.__staticCaches[name]?.dependencies
 
-    if (typeof value == "function") {
-      // @ts-expect-error
-      actualValue = value()
-    } else {
-      actualValue = value
-    }
+    const hasCache = name in constructor.__staticCaches
+    const depsChanged = arrayReferenceDifferent(oldDependencies || [], dependencies || [])
 
-    if (!(name in constructor.__staticCaches) || arrayReferenceDifferent(oldDependencies || [], dependencies || [])) {
+    if (!hasCache || depsChanged) {
+      let actualValue
+
+      if (typeof value == "function") {
+        // @ts-expect-error
+        actualValue = value()
+      } else {
+        actualValue = value
+      }
+
       constructor.__staticCaches[name] = {dependencies, value: actualValue}
     }
 
