@@ -22,6 +22,9 @@ class ShapeComponent {
   /** @type {Record<string, import("prop-types").Validator>} */
   static propTypes = undefined
 
+  /** @type {Record<string, {dependencies?: any[], value: any}> | undefined} */
+  static __staticCaches = undefined
+
   /**
    * @param {Record<string, any>} props
    */
@@ -61,6 +64,41 @@ class ShapeComponent {
     }
 
     return this.__caches[name].value
+  }
+
+  /**
+   * @template T
+   * @param {string} name
+   * @param {T | (() => T)} value
+   * @param {any[]} [dependencies]
+   * @returns {T}
+   */
+  cacheStatic(name, value, dependencies) {
+    const constructor = /** @type {typeof ShapeComponent} */ (this.constructor)
+
+    if (!constructor.__staticCaches) {
+      constructor.__staticCaches = {}
+    }
+
+    const oldDependencies = constructor.__staticCaches[name]?.dependencies
+
+    const hasCache = name in constructor.__staticCaches
+    const depsChanged = arrayReferenceDifferent(oldDependencies || [], dependencies || [])
+
+    if (!hasCache || depsChanged) {
+      let actualValue
+
+      if (typeof value == "function") {
+        // @ts-expect-error
+        actualValue = value()
+      } else {
+        actualValue = value
+      }
+
+      constructor.__staticCaches[name] = {dependencies, value: actualValue}
+    }
+
+    return constructor.__staticCaches[name].value
   }
 
   /**
