@@ -53,6 +53,7 @@ Modes:
 
 ## ShapeComponent
 Class-style component wrapper with hooks-friendly state helpers.
+`setup()` runs before each render, so initialization in `setup()` is re-applied every render. It is also the recommended place to call hook-style helpers like `useState`/`useStates`.
 
 ```js
 import {ShapeComponent, shapeComponent} from "set-state-compare/build/shape-component.js"

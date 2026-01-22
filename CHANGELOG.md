@@ -6,3 +6,5 @@
 - Add `cacheStatic` to `ShapeComponent` for class-level caching.
 - Add README with module usage and API overview.
 - Ensure `cacheStatic` only evaluates suppliers when dependencies change.
+- Clarify that `ShapeComponent.setup()` runs before each render.
+- Note that `ShapeComponent.setup()` is the recommended place for hook-style helpers.
