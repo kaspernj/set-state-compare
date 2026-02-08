@@ -277,12 +277,13 @@ const shapeComponent = (ShapeClass) => {
       const prevProps = shape.props
 
       shape.props = actualProps
+      const propsChanged = !memoCompareProps(prevProps, actualProps)
 
       if (shape.setup) {
         shape.setup()
       }
 
-      if (shape.componentDidUpdate && shape.__firstRenderCompleted && memoCompareProps(shape.props, props)) {
+      if (shape.componentDidUpdate && shape.__firstRenderCompleted && propsChanged) {
         shape.componentDidUpdate(prevProps, shape.state)
       }
 

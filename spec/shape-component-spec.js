@@ -167,4 +167,79 @@ describe("shapeComponent", () => {
     expect(updated).toBe(1)
     expect(unmounted).toBe(1)
   })
+
+  it("runs componentDidUpdate when props change with defaultProps", () => {
+    let updates = 0
+    /** @type {Record<string, any> | undefined} */
+    let previousProps
+
+    class DefaultPropsShape extends ShapeComponent {
+      static defaultProps = {
+        name: "Donald",
+        role: "duck"
+      }
+
+      /**
+       * @param {Record<string, any>} prevProps
+       * @returns {void}
+       */
+      componentDidUpdate(prevProps) {
+        updates += 1
+        previousProps = prevProps
+      }
+
+      render() {
+        return React.createElement("div", null, this.props.name)
+      }
+    }
+
+    const Component = shapeComponent(DefaultPropsShape)
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      renderer.update(React.createElement(Component, {name: "Daisy"}))
+    })
+
+    act(() => {
+      renderer.unmount()
+    })
+
+    expect(updates).toBe(1)
+    expect(previousProps).toEqual({name: "Donald", role: "duck"})
+  })
+
+  it("does not run componentDidUpdate when prop values are unchanged", () => {
+    let updates = 0
+
+    class SamePropsShape extends ShapeComponent {
+      componentDidUpdate() {
+        updates += 1
+      }
+
+      render() {
+        return React.createElement("div", null, this.props.name)
+      }
+    }
+
+    const Component = shapeComponent(SamePropsShape)
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component, {name: "Donald"}))
+    })
+
+    act(() => {
+      renderer.update(React.createElement(Component, {name: "Donald"}))
+    })
+
+    act(() => {
+      renderer.unmount()
+    })
+
+    expect(updates).toBe(0)
+  })
 })
