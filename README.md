@@ -93,6 +93,24 @@ function Example(props) {
   shape.useState("count", 0)
   return React.createElement("div", null, String(shape.state.count))
 }
+
+## useShapeHook
+Class-based hooks with `ShapeComponent`-style lifecycle methods like `setup`, `componentDidMount`, and `componentWillUnmount`.
+
+```js
+import useShapeHook, {ShapeHook} from "set-state-compare/build/shape-hook.js"
+
+class MyShapeHookClass extends ShapeHook {
+  setup() {
+    this.useState("count", 0)
+  }
+}
+
+function Example(props) {
+  const shapeHook = useShapeHook(MyShapeHookClass, props)
+  return React.createElement("div", null, String(shapeHook.state.count))
+}
+```
 ```
 
 ## Comparison Utilities
