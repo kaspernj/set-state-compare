@@ -42,6 +42,13 @@ class ShapeHook {
   }
 
   /**
+   * @returns {boolean}
+   */
+  isMounted() {
+    return this.__mounted
+  }
+
+  /**
    * @template T
    * @param {string} name
    * @param {T | (() => T)} value

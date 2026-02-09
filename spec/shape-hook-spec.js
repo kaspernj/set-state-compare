@@ -138,4 +138,56 @@ describe("useShapeHook", () => {
     expect(updated).toBe(1)
     expect(unmounted).toBe(1)
   })
+
+  it("provides isMounted helper", () => {
+    /** @type {MountedHook | undefined} */
+    let hookInstance
+    /** @type {boolean | undefined} */
+    let mountedInSetup
+    /** @type {boolean | undefined} */
+    let mountedInDidMount
+
+    class MountedHook extends ShapeHook {
+      setup() {
+        this.useState("count", 0)
+        mountedInSetup = this.isMounted()
+      }
+
+      componentDidMount() {
+        mountedInDidMount = this.isMounted()
+      }
+    }
+
+    /**
+     * @param {{name: string}} props
+     * @returns {import("react").ReactElement}
+     */
+    function MountedHost(props) {
+      const hook = useShapeHook(MountedHook, props)
+      hookInstance = hook
+
+      return React.createElement("div", null, props.name)
+    }
+
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(MountedHost, {name: "Donald"}))
+    })
+
+    expect(mountedInSetup).toBe(false)
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    expect(mountedInDidMount).toBe(true)
+    expect(hookInstance.isMounted()).toBe(true)
+
+    act(() => {
+      renderer.unmount()
+    })
+
+    expect(hookInstance.isMounted()).toBe(false)
+  })
 })
