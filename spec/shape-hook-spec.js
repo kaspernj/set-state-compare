@@ -145,16 +145,22 @@ describe("useShapeHook", () => {
     /** @type {boolean | undefined} */
     let mountedInSetup
     /** @type {boolean | undefined} */
+    let mountingInSetup
+    /** @type {boolean | undefined} */
     let mountedInDidMount
+    /** @type {boolean | undefined} */
+    let mountingInDidMount
 
     class MountedHook extends ShapeHook {
       setup() {
         this.useState("count", 0)
         mountedInSetup = this.isMounted()
+        mountingInSetup = this.isMounting()
       }
 
       componentDidMount() {
         mountedInDidMount = this.isMounted()
+        mountingInDidMount = this.isMounting()
       }
     }
 
@@ -176,18 +182,22 @@ describe("useShapeHook", () => {
     })
 
     expect(mountedInSetup).toBe(false)
+    expect(mountingInSetup).toBe(true)
 
     act(() => {
       flushAfterPaint()
     })
 
     expect(mountedInDidMount).toBe(true)
+    expect(mountingInDidMount).toBe(false)
     expect(hookInstance.isMounted()).toBe(true)
+    expect(hookInstance.isMounting()).toBe(false)
 
     act(() => {
       renderer.unmount()
     })
 
     expect(hookInstance.isMounted()).toBe(false)
+    expect(hookInstance.isMounting()).toBe(false)
   })
 })
