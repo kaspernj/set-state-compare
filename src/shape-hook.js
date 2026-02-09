@@ -200,9 +200,9 @@ class ShapeHook {
 
           this.state[stateName] = newValue
 
-          // Avoid React error if using set-state while rendering (like in a useMemo callback).
+          // Avoid React error if using set-state while rendering or not mounted (like in a useMemo callback).
           if (!args?.silent) {
-            if (shared.rendering > 0) {
+            if (shared.rendering > 0 || !this.isMounted()) {
               shared.enqueueRenderCallback(() => setState(newValue))
             } else {
               setState(newValue)
