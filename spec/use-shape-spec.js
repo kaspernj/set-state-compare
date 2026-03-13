@@ -80,7 +80,7 @@ describe("useShape", () => {
     expect(output.children).toEqual(["2"])
   })
 
-  it("flushes deferred updates without a later React commit", () => {
+  it("flushes deferred updates without a later React commit", async () => {
     /** @type {(value: number) => void} */
     let resolveAsyncUpdate
 
@@ -125,16 +125,57 @@ describe("useShape", () => {
       resolveAsyncUpdate(1)
     })
 
-    return act(async () => {
-      await Promise.resolve()
-
-      expect(renderer.toJSON().children).toEqual(["0"])
-
-      shared.rendering = 0
+    await act(async () => {
       await Promise.resolve()
       await Promise.resolve()
-    }).then(() => {
-      expect(renderer.toJSON().children).toEqual(["1"])
     })
+
+    shared.rendering = 0
+
+    if (shared.renderingCallbacks.length > 0) {
+      act(() => {
+        shared.flushRenderingCallbacks()
+      })
+    }
+
+    expect(renderer.toJSON().children).toEqual(["1"])
+  })
+
+  it("does not replay superseded deferred state", () => {
+    /** @type {import("../src/use-shape.js").Shape | undefined} */
+    let shapeInstance
+
+    /**
+     * @returns {import("react").ReactElement}
+     */
+    function UseShapeComponent() {
+      const shape = useShape({})
+
+      shapeInstance = shape
+      shape.useState("count", 0)
+
+      return React.createElement("div", null, String(shape.state.count))
+    }
+
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(UseShapeComponent))
+    })
+
+    act(() => {
+      shared.rendering = 1
+      shapeInstance.set({count: 1})
+      shared.rendering = 0
+      shapeInstance.set({count: 2})
+      act(() => {
+        shared.flushRenderingCallbacks()
+      })
+    })
+
+    /** @type {import("react-test-renderer").ReactTestRendererJSON} */
+    const json = renderer.toJSON()
+
+    expect(json.children).toEqual(["2"])
   })
 })
