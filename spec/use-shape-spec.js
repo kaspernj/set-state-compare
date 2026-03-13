@@ -1,6 +1,7 @@
 import React from "react"
 import TestRenderer, {act} from "react-test-renderer"
-import useShape from "../src/use-shape.js"
+import useShape, {shapeComponent} from "../src/use-shape.js"
+import {ShapeComponent} from "../src/shape-component.js"
 import shared from "../src/shared.js"
 
 /**
@@ -177,5 +178,37 @@ describe("useShape", () => {
     const json = renderer.toJSON()
 
     expect(json.children).toEqual(["2"])
+  })
+
+  it("reuses the main shapeComponent implementation for named exports", () => {
+    let updates = 0
+
+    class NamedExportShape extends ShapeComponent {
+      static defaultProps = {
+        name: "Donald"
+      }
+
+      componentDidUpdate() {
+        updates += 1
+      }
+
+      render() {
+        return React.createElement("div", null, this.props.name)
+      }
+    }
+
+    const Component = shapeComponent(NamedExportShape)
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      renderer.update(React.createElement(Component, {name: "Daisy"}))
+    })
+
+    expect(renderer.toJSON().children).toEqual(["Daisy"])
+    expect(updates).toBe(1)
   })
 })
