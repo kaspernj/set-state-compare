@@ -8,7 +8,7 @@ describe("arrayDifferent", () => {
     expect(arrayDifferent(object1, object2)).toBe(true)
   })
 
-  it("returns false if an element in the arrays are different", () => {
+  it("returns true if an element in the arrays are different", () => {
     const object1 = ["Kasper", "Christina"]
     const object2 = ["Kasper", "Christina S."]
 
@@ -20,5 +20,19 @@ describe("arrayDifferent", () => {
     const object2 = ["Kasper", "Christina"]
 
     expect(arrayDifferent(object1, object2)).toBe(false)
+  })
+
+  it("returns false for identical route path parts", () => {
+    const object1 = ["user", "school-class-course-modules", "show"]
+    const object2 = ["user", "school-class-course-modules", "show"]
+
+    expect(arrayDifferent(object1, object2)).toBe(false)
+  })
+
+  it("returns true when a route path part changes", () => {
+    const object1 = ["user", "school-class-course-modules", "show"]
+    const object2 = ["user", "school-class-course-modules", "step"]
+
+    expect(arrayDifferent(object1, object2)).toBe(true)
   })
 })
