@@ -3,13 +3,13 @@ import {useEffect, useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
 import shared from "./shared.js"
 
-class Shape {
+class UseShapeState {
   constructor() {
     this.__mounting = true
     this.__mounted = false
     this.setStates = {}
     this.__setStatesActual = {}
-    this.__setStatesLater = {}
+    this.__queuedSetStates = {}
 
     /** @type {Record<string, any>} */
     this.state = {}
@@ -23,16 +23,6 @@ class Shape {
     this.m = fetchingObject(() => this.meta)
     this.p = fetchingObject(() => this.props)
     this.s = fetchingObject(this.state)
-  }
-
-  __afterRender() {
-    for (const stateName in this.__setStatesLater) {
-      const stateValue = this.__setStatesLater[stateName]
-      const setState = this.__setStatesActual[stateName]
-
-      setState(stateValue)
-      delete this.__setStatesLater[stateName]
-    }
   }
 
   /**
@@ -63,6 +53,31 @@ class Shape {
   }
 
   /**
+   * Schedule the current state value for a hook state after paint.
+   *
+   * Hook state updates cannot run during another render, but we also do not want
+   * to keep a separate replay queue that depends on a future React commit.
+   * @param {string} stateName
+   * @returns {void}
+   */
+  queueStateUpdate(stateName) {
+    if (this.__queuedSetStates[stateName]) return
+
+    this.__queuedSetStates[stateName] = true
+    shared.enqueueRenderCallback(() => {
+      delete this.__queuedSetStates[stateName]
+
+      if (!this.__mounted) return
+
+      const setState = this.__setStatesActual[stateName]
+
+      if (!setState) return
+
+      setState(this.state[stateName])
+    })
+  }
+
+  /**
    * @param {string} stateName
    * @param {any} defaultValue
    * @returns {void}
@@ -80,7 +95,7 @@ class Shape {
 
           if (!args?.silent) {
             if (shared.rendering > 0 || !this.__mounted) { // Avoid React error if using set-state while rendering or not mounted (like in a useMemo callback)
-              this.__setStatesLater[stateName] = newValue
+              this.queueStateUpdate(stateName)
             } else {
               setState(newValue)
             }
@@ -109,7 +124,7 @@ class Shape {
 }
 
 /**
- * @param {typeof Shape} ShapeClass
+ * @param {typeof UseShapeState} ShapeClass
  * @returns {import("react").ReactElement | null}
  */
 const shapeComponent = (ShapeClass) => {
@@ -129,14 +144,14 @@ const shapeComponent = (ShapeClass) => {
 /**
  * @param {Record<string, any>} props
  * @param {object} [opts]
- * @param {typeof Shape} [opts.shapeClass]
- * @returns {Shape}
+ * @param {typeof UseShapeState} [opts.shapeClass]
+ * @returns {UseShapeState}
  */
 function useShape(props, opts) {
-  /** @type {Shape} */
+  /** @type {UseShapeState} */
   const shape = useMemo(
     () => {
-      const ShapeClass = opts?.shapeClass || Shape
+      const ShapeClass = opts?.shapeClass || UseShapeState
 
       return new ShapeClass()
     },
@@ -146,7 +161,6 @@ function useShape(props, opts) {
   useEffect(() => {
     shape.__mounting = false
     shape.__mounted = true
-    shape.__afterRender()
 
     return () => {
       shape.__mounted = false
@@ -158,5 +172,5 @@ function useShape(props, opts) {
   return shape
 }
 
-export {shapeComponent, Shape}
+export {shapeComponent, UseShapeState as Shape}
 export default useShape
