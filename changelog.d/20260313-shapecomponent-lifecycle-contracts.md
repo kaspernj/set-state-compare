@@ -1,0 +1,1 @@
+Fixed `ShapeComponent`/`ShapeHook` update semantics so `componentDidUpdate` runs after committed renders with correct previous props/state snapshots, made `cache(...)` lazily memoize supplier work, and unified the `use-shape` named `shapeComponent` export with the main implementation.

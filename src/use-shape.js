@@ -1,6 +1,7 @@
 import {referenceDifferent} from "./diff-utils.js"
 import {useEffect, useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
+import {shapeComponent} from "./shape-component.js"
 import shared from "./shared.js"
 
 class UseShapeState {
@@ -120,24 +121,6 @@ class UseShapeState {
         this.useState(stateName, defaultValue)
       }
     }
-  }
-}
-
-/**
- * @param {typeof UseShapeState} ShapeClass
- * @returns {import("react").ReactElement | null}
- */
-const shapeComponent = (ShapeClass) => {
-  return (props) => {
-    const shape = useMemo(() => new ShapeClass(), [])
-
-    shape.updateProps(props)
-
-    if (shape.setup) {
-      shape.setup()
-    }
-
-    return shape.render()
   }
 }
 

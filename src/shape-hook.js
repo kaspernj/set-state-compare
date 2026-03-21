@@ -4,7 +4,7 @@ import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
 import shared from "./shared.js"
-import {useEffect, useMemo, useState} from "react"
+import {useLayoutEffect, useMemo, useState} from "react"
 
 /**
  * @typedef {object} ShapeHookLifecycleHooks
@@ -32,6 +32,10 @@ class ShapeHook {
     this.__caches = {}
     this.__mounting = true
     this.__mounted = false
+    this.__committed = false
+    this.__committedProps = props
+    this.__committedState = {}
+    this.__pendingDidUpdate = undefined
     this.props = props
     this.setStates = {}
     this.state = {}
@@ -63,17 +67,20 @@ class ShapeHook {
    * @returns {T}
    */
   cache(name, value, dependencies) {
-    let actualValue
     const oldDependencies = this.__caches[name]?.dependencies
+    const hasCache = name in this.__caches
+    const depsChanged = arrayReferenceDifferent(oldDependencies || [], dependencies || [])
 
-    if (typeof value == "function") {
-      // @ts-expect-error
-      actualValue = value()
-    } else {
-      actualValue = value
-    }
+    if (!hasCache || depsChanged) {
+      let actualValue
 
-    if (!(name in this.__caches) || arrayReferenceDifferent(oldDependencies || [], dependencies || [])) {
+      if (typeof value == "function") {
+        // @ts-expect-error
+        actualValue = value()
+      } else {
+        actualValue = value
+      }
+
       this.__caches[name] = {dependencies, value: actualValue}
     }
 
@@ -161,6 +168,23 @@ class ShapeHook {
   }
 
   /**
+   * Track the previous committed snapshot for a future componentDidUpdate call.
+   * The first state/prop change before a commit wins so the callback sees the
+   * same previous values React would expose for the whole commit.
+   * @param {Record<string, any>} prevProps
+   * @param {Record<string, any>} prevState
+   * @returns {void}
+   */
+  queueDidUpdate(prevProps, prevState) {
+    if (!this.__pendingDidUpdate) {
+      this.__pendingDidUpdate = {
+        prevProps: {...prevProps},
+        prevState: {...prevState}
+      }
+    }
+  }
+
+  /**
    * @param {string} stylingName
    * @param {Record<string, any>} style
    * @returns {Record<string, any>}
@@ -191,28 +215,22 @@ class ShapeHook {
       this.state[stateName] = stateValue
       this.setStates[stateName] = (newValue, args) => {
         if (referenceDifferent(this.state[stateName], newValue)) {
-          let prevState
-
-          // @ts-expect-error
-          if (this.componentDidUpdate) {
-            prevState = Object.assign({}, this.state)
-          }
+          const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (this))
+          const prevState = {...this.state}
 
           this.state[stateName] = newValue
 
           // Avoid React error if using set-state while rendering or not mounted (like in a useMemo callback).
           if (!args?.silent) {
+            if (lifecycle.componentDidUpdate) {
+              this.queueDidUpdate(this.__committedProps, prevState)
+            }
+
             if (shared.rendering > 0 || !this.isMounted()) {
               shared.enqueueRenderCallback(() => setState(newValue))
             } else {
               setState(newValue)
             }
-          }
-
-          // @ts-expect-error
-          if (this.componentDidUpdate) {
-            // @ts-expect-error
-            this.componentDidUpdate(this.props, prevState)
           }
         }
       }
@@ -285,6 +303,7 @@ function useShapeHook(ShapeHookClass, props) {
     }
 
     const shape = useMemo(() => new ShapeHookClass(actualProps), [])
+    const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (shape))
     const prevProps = shape.props
 
     shape.props = actualProps
@@ -294,26 +313,40 @@ function useShapeHook(ShapeHookClass, props) {
       shape.setup()
     }
 
-    if (shape.componentDidUpdate && shape.__firstRenderCompleted && propsChanged) {
-      shape.componentDidUpdate(prevProps, shape.state)
+    if (lifecycle.componentDidUpdate && shape.__firstRenderCompleted && propsChanged) {
+      shape.queueDidUpdate(prevProps, shape.__committedState)
     }
 
-    useEffect(() => {
+    useLayoutEffect(() => {
       shape.__mounting = false
       shape.__mounted = true
 
-      if (shape.componentDidMount) {
-        shape.componentDidMount()
+      if (lifecycle.componentDidMount) {
+        lifecycle.componentDidMount()
       }
 
       return () => {
         shape.__mounted = false
 
-        if (shape.componentWillUnmount) {
-          shape.componentWillUnmount()
+        if (lifecycle.componentWillUnmount) {
+          lifecycle.componentWillUnmount()
         }
       }
     }, [])
+
+    useLayoutEffect(() => {
+      const pendingDidUpdate = shape.__pendingDidUpdate
+      const hasCommittedRender = shape.__committed
+
+      shape.__committed = true
+      shape.__committedProps = shape.props
+      shape.__committedState = {...shape.state}
+
+      if (hasCommittedRender && lifecycle.componentDidUpdate && pendingDidUpdate) {
+        shape.__pendingDidUpdate = undefined
+        lifecycle.componentDidUpdate(pendingDidUpdate.prevProps, pendingDidUpdate.prevState)
+      }
+    })
 
     shape.__firstRenderCompleted = true
 
