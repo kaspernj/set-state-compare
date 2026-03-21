@@ -335,16 +335,17 @@ function useShapeHook(ShapeHookClass, props) {
     }, [])
 
     useLayoutEffect(() => {
-      if (shape.__committed && lifecycle.componentDidUpdate && shape.__pendingDidUpdate) {
-        const {prevProps: pendingPrevProps, prevState: pendingPrevState} = shape.__pendingDidUpdate
-
-        shape.__pendingDidUpdate = undefined
-        lifecycle.componentDidUpdate(pendingPrevProps, pendingPrevState)
-      }
+      const pendingDidUpdate = shape.__pendingDidUpdate
+      const hasCommittedRender = shape.__committed
 
       shape.__committed = true
       shape.__committedProps = shape.props
       shape.__committedState = {...shape.state}
+
+      if (hasCommittedRender && lifecycle.componentDidUpdate && pendingDidUpdate) {
+        shape.__pendingDidUpdate = undefined
+        lifecycle.componentDidUpdate(pendingDidUpdate.prevProps, pendingDidUpdate.prevState)
+      }
     })
 
     shape.__firstRenderCompleted = true

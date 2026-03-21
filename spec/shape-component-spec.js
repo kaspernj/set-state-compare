@@ -211,6 +211,7 @@ describe("shapeComponent", () => {
 
     await act(async () => {
       await Promise.resolve()
+      await Promise.resolve()
     })
 
     expect(renderedCountSeenInDidUpdate).toBe(1)
@@ -308,6 +309,56 @@ describe("shapeComponent", () => {
     })
 
     expect(previousState).toEqual({count: 5})
+  })
+
+  it("uses the current committed props for setState calls inside componentDidUpdate", async () => {
+    /** @type {Array<Record<string, any>>} */
+    const previousPropsCalls = []
+    /** @type {PropUpdateShape | undefined} */
+    let shapeInstance
+
+    class PropUpdateShape extends ShapeComponent {
+      componentDidUpdate(prevProps) {
+        previousPropsCalls.push(prevProps)
+
+        if (this.props.name === "Daisy" && this.state.count === 0) {
+          this.setState({count: 1})
+        }
+      }
+
+      render() {
+        this.useState("count", 0)
+        shapeInstance = this
+
+        return React.createElement("div", null, `${this.props.name}:${this.state.count}`)
+      }
+    }
+
+    const Component = shapeComponent(PropUpdateShape)
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component, {name: "Donald"}))
+    })
+
+    act(() => {
+      renderer.update(React.createElement(Component, {name: "Daisy"}))
+    })
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(previousPropsCalls).toEqual([{name: "Donald"}, {name: "Daisy"}])
+    expect(shapeInstance.state.count).toBe(1)
   })
 
   it("does not run componentDidUpdate when prop values are unchanged", () => {
