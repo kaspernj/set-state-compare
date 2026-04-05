@@ -68,6 +68,102 @@ class Counter extends ShapeComponent {
 export default shapeComponent(Counter)
 ```
 
+### Typed Props and State
+
+`ShapeComponent` and `ShapeHook` support generic type parameters for props (`P`) and state (`S`) via JSDoc `@augments`. This gives you type-checked `this.props`, `this.p`, `this.state`, `this.s`, and `this.setState` calls.
+
+#### Typed props
+
+```js
+/**
+ * @typedef {object} CounterProps
+ * @property {string} name
+ * @property {number} initialCount
+ */
+
+/** @augments {ShapeComponent<CounterProps>} */
+class Counter extends ShapeComponent {
+  setup() {
+    this.useStates({count: this.props.initialCount})
+  }
+
+  render() {
+    // this.props.name -> string
+    // this.p.initialCount -> number
+    return React.createElement("div", null, `${this.props.name}: ${this.state.count}`)
+  }
+}
+
+export default memo(shapeComponent(Counter))
+// <Counter name="hello" initialCount={5} />  -> type-checked
+```
+
+#### Typed state
+
+```js
+/**
+ * @typedef {object} TimerState
+ * @property {number} elapsed
+ * @property {boolean} running
+ */
+
+/** @augments {ShapeComponent<{}, TimerState>} */
+class Timer extends ShapeComponent {
+  setup() {
+    this.useStates({elapsed: 0, running: false})
+  }
+
+  render() {
+    // this.state.elapsed -> number
+    // this.s.running -> boolean
+    // this.setState({elapsed: 10}) -> type-checked
+    return React.createElement("div", null, String(this.state.elapsed))
+  }
+}
+```
+
+#### Class field state
+
+State can also be defined as a class field instead of calling `useStates()`. The hooks are auto-registered from the class field keys.
+
+```js
+/** @augments {ShapeComponent<{name: string}, {label: string, active: boolean}>} */
+class MyComponent extends ShapeComponent {
+  state = /** @type {{label: string, active: boolean}} */ ({label: "default", active: false})
+
+  render() {
+    // this.state.label -> string
+    // this.s.active -> boolean
+    // this.setState({label: "updated"}) -> type-checked
+    return React.createElement("div", null, this.state.label)
+  }
+}
+```
+
+#### Typed ShapeHook
+
+The same pattern works with `ShapeHook` and `useShapeHook`:
+
+```js
+/**
+ * @typedef {object} FormHookProps
+ * @property {string} formId
+ */
+
+/** @augments {ShapeHook<FormHookProps, {submitted: boolean}>} */
+class FormHook extends ShapeHook {
+  setup() {
+    this.useStates({submitted: false})
+  }
+}
+
+function FormHost(props) {
+  const hook = useShapeHook(FormHook, props)
+  // hook.props.formId -> string
+  // hook.state.submitted -> boolean
+}
+```
+
 ### cache
 Instance-level cache with dependency comparison.
 
