@@ -1,6 +1,6 @@
 {
   "name": "set-state-compare",
-  "version": "1.0.71",
+  "version": "1.0.75",
   "description": "setState for React that compares with the current state and only sets the state if changed.",
   "files": [
     "build/**"
@@ -9,12 +9,12 @@
   "types": "build/index.d.ts",
   "type": "module",
   "scripts": {
-    "release:patch": "npm version patch -m \"Bump version to %s\" && git push --follow-tags && npm whoami || npm login && npm publish",
+    "release:patch": "node scripts/release-patch.js",
     "build": "rm -rf build && tsc",
     "lint": "eslint",
     "prepublishOnly": "npm run build",
     "test": "jasmine",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.spec.json",
     "watch": "tsc -w"
   },
   "repository": {
@@ -36,18 +36,20 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/jasmine": "^6.0.0",
-    "eslint": "^9.39.2",
+    "@types/prop-types": "^15.7.15",
+    "@types/react": "^19.2.14",
+    "eslint": "^10.0.3",
     "eslint-plugin-jasmine": "^4.2.2",
     "eslint-plugin-jsdoc": "^62.4.1",
     "globals": "^17.0.0",
     "jasmine": "^6.0.0",
     "react": "^19.2.3",
     "react-test-renderer": "^19.2.3",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "dependencies": {
     "diggerize": "^1.0.5",
-    "fetching-object": ">= 1.0.5"
+    "fetching-object": "^1.0.7"
   },
   "peerDependencies": {
     "prop-types": ">= 15.8.1",

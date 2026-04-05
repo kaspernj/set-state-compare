@@ -21,4 +21,18 @@ describe("simpleObjectDifferent", () => {
 
     expect(simpleObjectDifferent(object1, object2, false)).toBe(false)
   })
+
+  it("returns false for identical route params", () => {
+    const object1 = {school_class_course_module_id: "module-1", team_survey_step_id: "step-1"}
+    const object2 = {school_class_course_module_id: "module-1", team_survey_step_id: "step-1"}
+
+    expect(simpleObjectDifferent(object1, object2, true)).toBe(false)
+  })
+
+  it("returns true when a route param changes", () => {
+    const object1 = {school_class_course_module_id: "module-1", team_survey_step_id: "step-1"}
+    const object2 = {school_class_course_module_id: "module-1", team_survey_step_id: "step-2"}
+
+    expect(simpleObjectDifferent(object1, object2, true)).toBe(true)
+  })
 })
