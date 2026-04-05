@@ -45,7 +45,7 @@
     "jasmine": "^6.0.0",
     "react": "^19.2.3",
     "react-test-renderer": "^19.2.3",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "dependencies": {
     "diggerize": "^1.0.5",
