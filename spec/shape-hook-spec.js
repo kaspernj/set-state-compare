@@ -55,6 +55,7 @@ describe("useShapeHook", () => {
       return React.createElement("div", null, String(hook.state.count))
     }
 
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {

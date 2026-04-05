@@ -10,6 +10,7 @@
 
     "moduleResolution": "nodenext",
     "module": "nodenext",
+    "rootDir": "src",
     "outDir": "build",
 
     "lib": ["dom", "ES2024"],
