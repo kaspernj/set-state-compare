@@ -1,19 +1,25 @@
 import {ShapeHook, useShapeHook} from "./shape-hook.js"
 
+/**
+ * @template {Record<string, any>} [P=Record<string, any>]
+ * @template {Record<string, any>} [S=Record<string, any>]
+ * @augments {ShapeHook<P, S>}
+ */
 class ShapeComponent extends ShapeHook {}
 
 /**
- * @param {typeof ShapeComponent} ShapeClass
- * @returns {function(Record<string, any>): import("react").ReactNode} React functional component that renders the ShapeClass
+ * @template {Record<string, any>} P
+ * @param {{defaultProps?: Record<string, any>, propTypes?: Record<string, import("prop-types").Validator<any>>, name: string} & (new (props: P) => ShapeComponent<P>)} ShapeClass
+ * @returns {import("react").FunctionComponent<P>}
  */
 const shapeComponent = (ShapeClass) => {
   /**
-   * @param {Record<string, any>} props
-   * @returns {import("react").ReactNode} React element that renders the ShapeClass
+   * @param {P} props
+   * @returns {import("react").ReactNode}
    */
   const functionalComponent = (props) => {
     const shape = useShapeHook(
-      /** @type {typeof ShapeHook & (new (props: Record<string, any>) => ShapeComponent)} */ (ShapeClass),
+      ShapeClass,
       props
     )
 

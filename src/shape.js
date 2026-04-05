@@ -52,7 +52,7 @@ export default class Shape {
 
   /**
    * @param {Record<string, any>} newData
-   * @param {function(): void | undefined} callback
+   * @param {function(): void} [callback]
    * @returns {void}
    */
   set(newData, callback) {

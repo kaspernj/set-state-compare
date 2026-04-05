@@ -84,13 +84,14 @@ describe("shapeComponent", () => {
   })
 
   it("re-renders for new object references but skips identical primitives", () => {
-    /** @type {ShapeComponent | undefined} */
+    /** @type {TestShape | undefined} */
     let shapeInstance
 
     class TestShape extends ShapeComponent {
       /** @param {Record<string, any>} props */
       constructor(props) {
         super(props)
+        /** @type {number} */
         this.renderCount = 0
         shapeInstance = this
       }
@@ -105,6 +106,7 @@ describe("shapeComponent", () => {
     }
 
     const Component = shapeComponent(TestShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -160,6 +162,7 @@ describe("shapeComponent", () => {
     }
 
     const Component = shapeComponent(LifecycleShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -243,6 +246,7 @@ describe("shapeComponent", () => {
     }
 
     const Component = shapeComponent(DefaultPropsShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -286,6 +290,7 @@ describe("shapeComponent", () => {
     }
 
     const Component = shapeComponent(DefaultPropsShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -335,6 +340,7 @@ describe("shapeComponent", () => {
     }
 
     const Component = shapeComponent(PropUpdateShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -375,6 +381,7 @@ describe("shapeComponent", () => {
     }
 
     const Component = shapeComponent(SamePropsShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {

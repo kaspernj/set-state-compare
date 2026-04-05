@@ -15,34 +15,52 @@ import {useLayoutEffect, useMemo, useState} from "react"
  * @property {() => void} [setup]
  */
 
+/**
+ * @template {Record<string, any>} [P=Record<string, any>]
+ * @template {Record<string, any>} [S=Record<string, any>]
+ */
 class ShapeHook {
   /** @type {Record<string, any> | undefined} */
   static defaultProps = undefined
 
-  /** @type {Record<string, import("prop-types").Validator>} */
+  /** @type {Record<string, import("prop-types").Validator<any>> | undefined} */
   static propTypes = undefined
 
   /** @type {Record<string, {dependencies?: any[], value: any}> | undefined} */
   static __staticCaches = undefined
 
   /**
-   * @param {Record<string, any>} props
+   * @param {P} props
    */
   constructor(props) {
+    /** @type {Record<string, {dependencies?: any[], value: any}>} */
     this.__caches = {}
     this.__mounting = true
     this.__mounted = false
     this.__committed = false
     this.__committedProps = props
+
+    /** @type {Record<string, any>} */
     this.__committedState = {}
     this.__pendingDidUpdate = undefined
+
+    /** @type {P} */
     this.props = props
+    /** @type {Record<string, (newValue: any, args?: {silent?: boolean}) => void>} */
     this.setStates = {}
-    this.state = {}
+
+    /** @type {S} */
+    this.state = /** @type {S} */ ({})
+    /** @type {string[]} */
+    this.__classFieldStateKeys = []
     this.__firstRenderCompleted = false
-    this.tt = fetchingObject(this)
+    this.tt = /** @type {any} */ (fetchingObject(this))
+
+    /** @type {P} */
     this.p = fetchingObject(() => this.props)
-    this.s = fetchingObject(this.state)
+
+    /** @type {S} */
+    this.s = /** @type {S} */ (fetchingObject(() => this.state))
   }
 
   /**
@@ -128,12 +146,12 @@ class ShapeHook {
    */
   setInstance(variables) {
     for (const name in variables) {
-      this[name] = variables[name]
+      /** @type {Record<string, any>} */ (this)[name] = variables[name]
     }
   }
 
   /**
-   * @param {Record<string, any>} statesList
+   * @param {Partial<S> | ((state: S) => Partial<S>)} statesList
    * @param {function() : void} [callback]
    * @returns {void}
    */
@@ -158,7 +176,7 @@ class ShapeHook {
   }
 
   /**
-   * @param {Record<string, any>} statesList
+   * @param {Partial<S> | ((state: S) => Partial<S>)} statesList
    * @returns {Promise<void>}
    */
   setStateAsync(statesList) {
@@ -205,20 +223,23 @@ class ShapeHook {
 
   /**
    * @param {string} stateName
-   * @param {any} defaultValue
+   * @param {any} [defaultValue]
    * @returns {any}
    */
   useState(stateName, defaultValue) {
-    const [stateValue, setState] = useState(defaultValue)
+    const effectiveDefault = (stateName in this.state) ? this.state[stateName] : defaultValue
+    const [stateValue, setState] = useState(effectiveDefault)
 
-    if (!(stateName in this.state)) {
-      this.state[stateName] = stateValue
+    if (!(stateName in this.setStates)) {
+      const mutableState = /** @type {Record<string, any>} */ (this.state)
+
+      mutableState[stateName] = stateValue
       this.setStates[stateName] = (newValue, args) => {
-        if (referenceDifferent(this.state[stateName], newValue)) {
+        if (referenceDifferent(mutableState[stateName], newValue)) {
           const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (this))
           const prevState = {...this.state}
 
-          this.state[stateName] = newValue
+          mutableState[stateName] = newValue
 
           // Avoid React error if using set-state while rendering or not mounted (like in a useMemo callback).
           if (!args?.silent) {
@@ -259,9 +280,10 @@ class ShapeHook {
 }
 
 /**
- * @template {ShapeHook} T
- * @param {typeof ShapeHook & (new (props: Record<string, any>) => T)} ShapeHookClass
- * @param {Record<string, any>} props
+ * @template {Record<string, any>} P
+ * @template {ShapeHook<P>} T
+ * @param {{defaultProps?: Record<string, any>, propTypes?: Record<string, import("prop-types").Validator<any>>, name: string} & (new (props: P) => T)} ShapeHookClass
+ * @param {P} props
  * @returns {T}
  */
 function useShapeHook(ShapeHookClass, props) {
@@ -290,6 +312,7 @@ function useShapeHook(ShapeHookClass, props) {
     }
 
     if (ShapeHookClass.propTypes) {
+      /** @type {Record<string, any>} */
       const validateProps = {}
 
       for (const key in actualProps) {
@@ -302,15 +325,27 @@ function useShapeHook(ShapeHookClass, props) {
       PropTypes.checkPropTypes(ShapeHookClass.propTypes, validateProps, "prop", ShapeHookClass.name)
     }
 
-    const shape = useMemo(() => new ShapeHookClass(actualProps), [])
+    const shape = useMemo(() => {
+      const instance = new ShapeHookClass(actualProps)
+
+      // Snapshot state keys defined as class fields (before setup adds more).
+      instance.__classFieldStateKeys = Object.keys(instance.state)
+
+      return instance
+    }, [])
     const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (shape))
     const prevProps = shape.props
 
     shape.props = actualProps
     const propsChanged = !memoCompareProps(prevProps, actualProps)
 
-    if (shape.setup) {
-      shape.setup()
+    // Auto-register useState hooks for state keys defined as class fields.
+    for (const stateName of shape.__classFieldStateKeys) {
+      shape.useState(stateName, shape.state[stateName])
+    }
+
+    if (lifecycle.setup) {
+      lifecycle.setup()
     }
 
     if (lifecycle.componentDidUpdate && shape.__firstRenderCompleted && propsChanged) {
@@ -350,7 +385,7 @@ function useShapeHook(ShapeHookClass, props) {
 
     shape.__firstRenderCompleted = true
 
-    return shape
+    return /** @type {T} */ (shape)
   } finally {
     shared.scheduleAfterPaint(() => {
       shared.rendering = Math.max(0, shared.rendering - 1)

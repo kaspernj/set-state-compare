@@ -35,6 +35,7 @@ describe("useShape", () => {
       return React.createElement("div", null, String(shape.state.count))
     }
 
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -66,6 +67,7 @@ describe("useShape", () => {
       return React.createElement("div", null, String(shape.state.count))
     }
 
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -109,6 +111,7 @@ describe("useShape", () => {
       return React.createElement("div", null, String(shape.state.count))
     }
 
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -158,6 +161,7 @@ describe("useShape", () => {
       return React.createElement("div", null, String(shape.state.count))
     }
 
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
@@ -198,6 +202,7 @@ describe("useShape", () => {
     }
 
     const Component = shapeComponent(NamedExportShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
     let renderer
 
     act(() => {
