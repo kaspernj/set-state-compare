@@ -37,6 +37,7 @@ describe("useShapeHook", () => {
     let hookInstance
     let setupCalls = 0
 
+    /** @augments {ShapeHook<{name: string}>} */
     class CounterHook extends ShapeHook {
       setup() {
         setupCalls += 1
@@ -89,6 +90,7 @@ describe("useShapeHook", () => {
     let updated = 0
     let unmounted = 0
 
+    /** @augments {ShapeHook<{name: string}>} */
     class LifecycleHook extends ShapeHook {
       componentDidMount() {
         mounted += 1
@@ -152,6 +154,7 @@ describe("useShapeHook", () => {
     /** @type {boolean | undefined} */
     let mountingInDidMount
 
+    /** @augments {ShapeHook<{name: string}>} */
     class MountedHook extends ShapeHook {
       setup() {
         this.useState("count", 0)
