@@ -1,7 +1,7 @@
 import {simpleObjectValuesDifferent} from "./diff-utils.js"
 import shared from "./shared.js"
 
-/** @type {{mode: string, renderComponents: Shape[], renderLaterTimeout: number}} */
+/** @type {{mode: string, renderComponents: Shape[], renderLaterTimeout: number | undefined}} */
 const settings = {
   mode: "queuedForceUpdate",
   renderComponents: [],
@@ -37,6 +37,7 @@ export default class Shape {
    */
   constructor(component, data = {}) {
     this.__component = component
+    /** @type {(() => void)[]} */
     this.__stateCallbacks = []
     this.__renderCount = 0
     this.__prevShape = {}
@@ -88,7 +89,7 @@ export default class Shape {
     }
 
     for (const key in newData) {
-      this[key] = newData[key]
+      /** @type {Record<string, any>} */ (this)[key] = newData[key]
     }
 
     if (this.__component.shapeUpdated && !skipDidUpdate) {

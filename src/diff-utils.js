@@ -111,12 +111,12 @@ function simpleObjectDifferent(object1, object2, checkLength) {
  * @param {any} object2
  * @param {object} [args]
  * @param {boolean} [args.debug]
- * @param {(string) => boolean} [args.ignore]
+ * @param {(arg0: string) => boolean} [args.ignore]
  * @returns {boolean}
  */
 function simpleObjectValuesDifferent(object1, object2, args) {
   for (const key in object1) {
-    if (args?.ignore && args.ignore({key})) {
+    if (args?.ignore && args.ignore(key)) {
       if (args?.debug) console.log(`Ignoring key ${key}`)
       continue
     }

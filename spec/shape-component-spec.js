@@ -298,11 +298,19 @@ describe("shapeComponent", () => {
     })
 
     act(() => {
+      flushAfterPaint()
+    })
+
+    act(() => {
       shapeInstance.setState({count: 5})
     })
 
     await act(async () => {
       await Promise.resolve()
+    })
+
+    act(() => {
+      flushAfterPaint()
     })
 
     act(() => {

@@ -8,8 +8,14 @@ class UseShapeState {
   constructor() {
     this.__mounting = true
     this.__mounted = false
+
+    /** @type {Record<string, (newValue: any, args?: {silent?: boolean}) => void>} */
     this.setStates = {}
+
+    /** @type {Record<string, (value: any) => void>} */
     this.__setStatesActual = {}
+
+    /** @type {Record<string, boolean>} */
     this.__queuedSetStates = {}
 
     /** @type {Record<string, any>} */
@@ -80,8 +86,8 @@ class UseShapeState {
 
   /**
    * @param {string} stateName
-   * @param {any} defaultValue
-   * @returns {void}
+   * @param {any} [defaultValue]
+   * @returns {any}
    */
   useState(stateName, defaultValue) {
     const [stateValue, setState] = useState(defaultValue)
@@ -90,7 +96,7 @@ class UseShapeState {
 
     if (!(stateName in this.state)) {
       this.state[stateName] = stateValue
-      this.setStates[stateName] = (newValue, args) => {
+      this.setStates[stateName] = (/** @type {any} */ newValue, /** @type {{silent?: boolean} | undefined} */ args) => {
         if (referenceDifferent(this.state[stateName], newValue)) {
           this.state[stateName] = newValue
 

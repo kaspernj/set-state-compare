@@ -11,7 +11,7 @@ export default function shouldComponentUpdate(component, nextProps, nextState) {
     return true
   }
 
-  if (component.state && Object.keys(nextState).length != Object.keys(component.state).length) {
+  if (component.state && nextState && Object.keys(nextState).length != Object.keys(component.state).length) {
     return true
   }
 
