@@ -1,5 +1,7 @@
-if (!globalThis.setStateCompareData) {
-  globalThis.setStateCompareData = {
+const _globalThis = /** @type {Record<string, any>} */ (globalThis)
+
+if (!_globalThis.setStateCompareData) {
+  _globalThis.setStateCompareData = {
     rendering: 0,
     renderingCallbacks: [],
     afterPaintCallbacks: [],
@@ -7,7 +9,7 @@ if (!globalThis.setStateCompareData) {
   }
 }
 
-const shared = globalThis.setStateCompareData
+const shared = _globalThis.setStateCompareData
 
 if (!shared.afterPaintCallbacks) {
   shared.afterPaintCallbacks = []
@@ -22,7 +24,7 @@ if (!shared.renderingCallbacks) {
 }
 
 if (!shared.scheduleAfterPaint) {
-  shared.scheduleAfterPaint = (callback) => {
+  shared.scheduleAfterPaint = (/** @type {() => void} */ callback) => {
     shared.afterPaintCallbacks.push(callback)
 
     if (shared.afterPaintHandle !== undefined) {
@@ -64,7 +66,7 @@ if (!shared.flushRenderingCallbacks) {
 }
 
 if (!shared.enqueueRenderCallback) {
-  shared.enqueueRenderCallback = (callback) => {
+  shared.enqueueRenderCallback = (/** @type {() => void} */ callback) => {
     shared.renderingCallbacks.push(callback)
     shared.scheduleAfterPaint(shared.flushRenderingCallbacks)
   }
