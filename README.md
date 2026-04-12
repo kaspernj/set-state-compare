@@ -20,7 +20,8 @@ import {
   simpleObjectDifferent,
   simpleObjectValuesDifferent,
   Shape,
-  setState
+  setState,
+  useNow
 } from "set-state-compare"
 ```
 
@@ -208,6 +209,29 @@ function Example(props) {
   return React.createElement("div", null, String(shapeHook.state.count))
 }
 ```
+
+## useNow
+
+Runs a callback synchronously during render whenever its deps change. Fills the gap between `useMemo` (which fires twice under React 18 StrictMode when misused as an effect) and `useEffect` (which runs after commit, too late if you want work started immediately).
+
+```js
+import {useNow} from "set-state-compare"
+
+function Example({userId}) {
+  useNow(() => {
+    startLoadingUser(userId)
+  }, [userId])
+
+  // ...
+}
+```
+
+Semantics:
+- Runs during render, not after commit.
+- Fires exactly once per real dep change, even under StrictMode's double render pass (previous deps are tracked on a `useRef` that persists across the pass).
+- Dep comparison uses `arrayReferenceDifferent` — same per-element reference equality React uses for hook deps.
+- No cleanup phase. If the callback starts async work, cancel it inside the callback (e.g. with a request-id guard).
+- A full mount → unmount → remount cycle still re-fires, because the ref is fresh on the new mount. This matches `useMemo`.
 
 ## Comparison Utilities
 
