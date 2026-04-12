@@ -60,11 +60,13 @@ describe("useNow", () => {
 
   it("fires exactly once per dep change under StrictMode double render", () => {
     let calls = 0
+    let renderCount = 0
 
     /**
      * @returns {import("react").ReactElement}
      */
     function Component() {
+      renderCount += 1
       useNow(() => {
         calls += 1
       }, [])
@@ -78,6 +80,9 @@ describe("useNow", () => {
       )
     })
 
+    // StrictMode invokes the component body twice, but useNow should dedupe
+    // via the ref so the callback only fires once.
+    expect(renderCount).toBe(2)
     expect(calls).toBe(1)
   })
 })
