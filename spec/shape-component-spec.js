@@ -424,18 +424,23 @@ describe("shapeComponent", () => {
     expect(shapeInstance.s.count).toBe(5)
     expect(shapeInstance.s.label).toBe("five")
 
-    // Static type check: `this.s` should be typed against the subclass's
-    // declared `state` shape, not widened to `Record<string, any>`. If the
-    // typing regressed, these reads would still pass at runtime but would
-    // surface as `any` to consumers — covered by typecheck rather than
-    // runtime assertion.
-    /** @type {number} */
-    const typedCount = shapeInstance.s.count
-    /** @type {string | null} */
-    const typedLabel = shapeInstance.s.label
+    // Static type check: `this.s` must be typed against the subclass's
+    // declared `state` shape — not widened to `any` or `Record<string, any>`.
+    // The conditional below uses the standard `IsAny` test
+    // (`0 extends 1 & T` succeeds only when T is `any`); it resolves to
+    // `never` on widening, and `true` is not assignable to `never`, so
+    // `npm run typecheck` fails. A plain `/** @type {number} */ const x = ...`
+    // is not enough because `any` is assignable to every type and would
+    // silently pass.
+    /** @type {0 extends (1 & typeof shapeInstance.s.count) ? never : (typeof shapeInstance.s.count extends number ? true : never)} */
+    const _stateCountIsExactlyNumber = true
+    /** @type {0 extends (1 & typeof shapeInstance.s.label) ? never : (typeof shapeInstance.s.label extends (string | null) ? true : never)} */
+    const _stateLabelIsExactlyStringOrNull = true
 
-    expect(typedCount).toBe(5)
-    expect(typedLabel).toBe("five")
+    expect(_stateCountIsExactlyNumber).toBe(true)
+    expect(_stateLabelIsExactlyStringOrNull).toBe(true)
+    expect(shapeInstance.s.count).toBe(5)
+    expect(shapeInstance.s.label).toBe("five")
   })
 
   it("does not run componentDidUpdate when prop values are unchanged", () => {
