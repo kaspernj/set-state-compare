@@ -375,6 +375,69 @@ describe("shapeComponent", () => {
     expect(shapeInstance.state.count).toBe(1)
   })
 
+  it("exposes this.s as a typed proxy of the subclass class-field state", () => {
+    /** @type {StateProxyShape | undefined} */
+    let shapeInstance
+
+    class StateProxyShape extends ShapeComponent {
+      state = {
+        count: 0,
+        label: /** @type {string | null} */ (null)
+      }
+
+      /**
+       * @param {Record<string, any>} props
+       */
+      constructor(props) {
+        super(props)
+        shapeInstance = this
+      }
+
+      render() {
+        return React.createElement("div", null, "")
+      }
+    }
+
+    const Component = shapeComponent(StateProxyShape)
+
+    act(() => {
+      TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    expect(shapeInstance.s.count).toBe(0)
+    expect(shapeInstance.s.label).toBe(null)
+
+    act(() => {
+      shapeInstance.setState({count: 5, label: "five"})
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    expect(shapeInstance.s.count).toBe(5)
+    expect(shapeInstance.s.label).toBe("five")
+
+    // Static type check: `this.s` should be typed against the subclass's
+    // declared `state` shape, not widened to `Record<string, any>`. If the
+    // typing regressed, these reads would still pass at runtime but would
+    // surface as `any` to consumers — covered by typecheck rather than
+    // runtime assertion.
+    /** @type {number} */
+    const typedCount = shapeInstance.s.count
+    /** @type {string | null} */
+    const typedLabel = shapeInstance.s.label
+
+    expect(typedCount).toBe(5)
+    expect(typedLabel).toBe("five")
+  })
+
   it("does not run componentDidUpdate when prop values are unchanged", () => {
     let updates = 0
 
