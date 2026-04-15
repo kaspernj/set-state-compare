@@ -1,0 +1,1 @@
+Type `ShapeHook`/`ShapeComponent`'s `this.s` and `this.p` proxies as `this["state"]` and `this["props"]` so subclasses that declare state as a class field literal (`state = {foo: 1, bar: ""}`) — or pass through narrowed prop types — get correctly-typed reads through `this.s.foo` and `this.p.bar` instead of falling back to the default `Record<string, any>` widening.

@@ -56,11 +56,23 @@ class ShapeHook {
     this.__firstRenderCompleted = false
     this.tt = /** @type {any} */ (fetchingObject(this))
 
-    /** @type {P} */
-    this.p = fetchingObject(() => this.props)
+    /**
+     * Proxy for `this.props`. Typed as `this["props"]` so subclasses that
+     * narrow their props type (or have it inferred via `extends
+     * ShapeHook<MyProps>`) get correctly-typed reads through `this.p`
+     * without each property degrading to `any`.
+     * @type {this["props"]}
+     */
+    this.p = /** @type {this["props"]} */ (fetchingObject(() => this.props))
 
-    /** @type {S} */
-    this.s = /** @type {S} */ (fetchingObject(() => this.state))
+    /**
+     * Proxy for `this.state`. Typed as `this["state"]` so subclasses that
+     * declare state as a class field literal (`state = {foo: 1, bar: ""}`)
+     * get reads through `this.s` typed against their actual state shape
+     * instead of falling back to the default `Record<string, any>`.
+     * @type {this["state"]}
+     */
+    this.s = /** @type {this["state"]} */ (fetchingObject(() => this.state))
   }
 
   /**

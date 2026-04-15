@@ -375,6 +375,74 @@ describe("shapeComponent", () => {
     expect(shapeInstance.state.count).toBe(1)
   })
 
+  it("exposes this.s as a typed proxy of the subclass class-field state", () => {
+    /** @type {StateProxyShape | undefined} */
+    let shapeInstance
+
+    class StateProxyShape extends ShapeComponent {
+      state = {
+        count: 0,
+        label: /** @type {string | null} */ (null)
+      }
+
+      /**
+       * @param {Record<string, any>} props
+       */
+      constructor(props) {
+        super(props)
+        shapeInstance = this
+      }
+
+      render() {
+        return React.createElement("div", null, "")
+      }
+    }
+
+    const Component = shapeComponent(StateProxyShape)
+
+    act(() => {
+      TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    expect(shapeInstance.s.count).toBe(0)
+    expect(shapeInstance.s.label).toBe(null)
+
+    act(() => {
+      shapeInstance.setState({count: 5, label: "five"})
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    expect(shapeInstance.s.count).toBe(5)
+    expect(shapeInstance.s.label).toBe("five")
+
+    // Static type check: `this.s` must be typed against the subclass's
+    // declared `state` shape — not widened to `any` or `Record<string, any>`.
+    // The conditional below uses the standard `IsAny` test
+    // (`0 extends 1 & T` succeeds only when T is `any`); it resolves to
+    // `never` on widening, and `true` is not assignable to `never`, so
+    // `npm run typecheck` fails. A plain `/** @type {number} */ const x = ...`
+    // is not enough because `any` is assignable to every type and would
+    // silently pass.
+    /** @type {0 extends (1 & typeof shapeInstance.s.count) ? never : (typeof shapeInstance.s.count extends number ? true : never)} */
+    const _stateCountIsExactlyNumber = true
+    /** @type {0 extends (1 & typeof shapeInstance.s.label) ? never : (typeof shapeInstance.s.label extends (string | null) ? true : never)} */
+    const _stateLabelIsExactlyStringOrNull = true
+
+    expect(_stateCountIsExactlyNumber).toBe(true)
+    expect(_stateLabelIsExactlyStringOrNull).toBe(true)
+    expect(shapeInstance.s.count).toBe(5)
+    expect(shapeInstance.s.label).toBe("five")
+  })
+
   it("does not run componentDidUpdate when prop values are unchanged", () => {
     let updates = 0
 
