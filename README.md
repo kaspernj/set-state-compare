@@ -141,6 +141,23 @@ class MyComponent extends ShapeComponent {
 }
 ```
 
+#### Assigning through `this.s`
+
+`this.s` is writable. Assigning to a top-level state key is equivalent to `this.setState({...})` and triggers the same re-render:
+
+```js
+class Counter extends ShapeComponent {
+  state = {count: 0}
+
+  increment = () => {
+    this.s.count += 1          // same as this.setState({count: this.s.count + 1})
+    console.log(this.s.count)  // already reflects the new value
+  }
+}
+```
+
+Only registered top-level keys are writable — assigning to an undeclared key throws. Nested mutation (`this.s.user.name = "…"`) writes to the underlying object but does not schedule a re-render; use `this.setState` for deep updates. `this.p` stays read-only.
+
 #### Typed ShapeHook
 
 The same pattern works with `ShapeHook` and `useShapeHook`:
