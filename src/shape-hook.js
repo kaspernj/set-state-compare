@@ -70,9 +70,32 @@ class ShapeHook {
      * declare state as a class field literal (`state = {foo: 1, bar: ""}`)
      * get reads through `this.s` typed against their actual state shape
      * instead of falling back to the default `Record<string, any>`.
+     *
+     * Writable: `this.s.foo = value` is equivalent to
+     * `this.setState({foo: value})`. Only top-level state keys registered
+     * via class-field `state`, `useState`, or `useStates` are writable;
+     * assigning to an unregistered key throws. Nested mutation
+     * (`this.s.foo.bar = 1`) writes to the underlying state object but
+     * does NOT schedule a re-render — call `this.setState` explicitly
+     * for deep updates.
      * @type {this["state"]}
      */
-    this.s = /** @type {this["state"]} */ (fetchingObject(() => this.state))
+    this.s = /** @type {this["state"]} */ (new Proxy(/** @type {Record<string, any>} */ ({}), {
+      get: (_target, prop) => {
+        if (typeof prop !== "string") return Reflect.get(this.state, prop)
+        if (prop === "prototype") return this.state.prototype
+        if (!(prop in this.state)) throw new Error(`Property not found: ${prop}`)
+        return this.state[prop]
+      },
+      set: (_target, prop, newValue) => {
+        if (typeof prop !== "string") return false
+        if (!(prop in this.setStates)) {
+          throw new Error(`Cannot assign to this.s.${prop} — state key "${prop}" is not registered. Declare it on the class-field state object, or call this.useState/useStates first.`)
+        }
+        this.setStates[prop](newValue)
+        return true
+      }
+    }))
   }
 
   /**

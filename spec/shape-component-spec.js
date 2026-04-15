@@ -443,6 +443,108 @@ describe("shapeComponent", () => {
     expect(shapeInstance.s.label).toBe("five")
   })
 
+  it("treats this.s assignments as setState calls and re-renders", () => {
+    /** @type {WritableStateShape | undefined} */
+    let shapeInstance
+    let renderCount = 0
+
+    class WritableStateShape extends ShapeComponent {
+      state = {
+        count: 0,
+        label: /** @type {string | null} */ (null)
+      }
+
+      /**
+       * @param {Record<string, any>} props
+       */
+      constructor(props) {
+        super(props)
+        shapeInstance = this
+      }
+
+      render() {
+        renderCount += 1
+        return React.createElement("div", null, `${this.s.count}:${this.s.label ?? ""}`)
+      }
+    }
+
+    const Component = shapeComponent(WritableStateShape)
+
+    act(() => {
+      TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    const initialRenderCount = renderCount
+
+    // Writing through this.s should be equivalent to this.setState.
+    act(() => {
+      shapeInstance.s.count = 7
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    // Synchronous read after assignment must reflect the new value — this.state is
+    // mutated inside setStates[name] before React's queued setter fires.
+    expect(shapeInstance.state.count).toBe(7)
+    expect(shapeInstance.s.count).toBe(7)
+    expect(renderCount).toBeGreaterThan(initialRenderCount)
+
+    act(() => {
+      shapeInstance.s.label = "seven"
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    expect(shapeInstance.s.label).toBe("seven")
+  })
+
+  it("throws when assigning to an unregistered state key through this.s", () => {
+    /** @type {UnregisteredStateShape | undefined} */
+    let shapeInstance
+
+    class UnregisteredStateShape extends ShapeComponent {
+      state = {known: 0}
+
+      /**
+       * @param {Record<string, any>} props
+       */
+      constructor(props) {
+        super(props)
+        shapeInstance = this
+      }
+
+      render() {
+        return React.createElement("div", null, "")
+      }
+    }
+
+    const Component = shapeComponent(UnregisteredStateShape)
+
+    act(() => {
+      TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    expect(() => {
+      /** @type {any} */ (shapeInstance.s).unknown = 1
+    }).toThrowError(/state key "unknown" is not registered/)
+  })
+
   it("does not run componentDidUpdate when prop values are unchanged", () => {
     let updates = 0
 
