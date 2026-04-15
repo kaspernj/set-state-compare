@@ -54,7 +54,15 @@ class ShapeHook {
     /** @type {string[]} */
     this.__classFieldStateKeys = []
     this.__firstRenderCompleted = false
-    this.tt = /** @type {any} */ (fetchingObject(this))
+    /**
+     * Proxy for `this` that throws on unknown property reads. Typed as
+     * `this` so subclasses get correctly-typed access to their own
+     * methods and fields through `this.tt.someHandler` — the same
+     * narrowing approach used for `this.p` (`this["props"]`) and
+     * `this.s` (`this["state"]`).
+     * @type {this}
+     */
+    this.tt = /** @type {this} */ (fetchingObject(this))
 
     /**
      * Proxy for `this.props`. Typed as `this["props"]` so subclasses that

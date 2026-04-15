@@ -158,6 +158,22 @@ class Counter extends ShapeComponent {
 
 Only registered top-level keys are writable — assigning to an undeclared key throws. Nested mutation (`this.s.user.name = "…"`) writes to the underlying object but does not schedule a re-render; use `this.setState` for deep updates. `this.p` stays read-only.
 
+#### Typed `this.tt`
+
+`this.tt` is a proxy of the instance that throws on unknown property reads. Typed as `this`, so JSX handlers like `onPress={this.tt.onFooPress}` are checked against the subclass's actual method signatures — typos fail typecheck, not just at runtime.
+
+```js
+class Counter extends ShapeComponent {
+  render() {
+    return React.createElement("button", {onPress: this.tt.onIncrementPress})
+  }
+
+  onIncrementPress = () => {
+    this.s.count += 1
+  }
+}
+```
+
 #### Typed ShapeHook
 
 The same pattern works with `ShapeHook` and `useShapeHook`:
