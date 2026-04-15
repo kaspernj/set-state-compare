@@ -543,6 +543,12 @@ describe("shapeComponent", () => {
     expect(() => {
       /** @type {any} */ (shapeInstance.s).unknown = 1
     }).toThrowError(/state key "unknown" is not registered/)
+
+    // `prop in setStates` would match inherited prototype keys and silently
+    // call them; the own-key guard must reject those too.
+    expect(() => {
+      /** @type {any} */ (shapeInstance.s).toString = 1
+    }).toThrowError(/state key "toString" is not registered/)
   })
 
   it("does not run componentDidUpdate when prop values are unchanged", () => {

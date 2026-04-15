@@ -89,7 +89,10 @@ class ShapeHook {
       },
       set: (_target, prop, newValue) => {
         if (typeof prop !== "string") return false
-        if (!(prop in this.setStates)) {
+        // Own-key check only — `prop in this.setStates` would also match
+        // inherited `Object.prototype` keys (`toString`, `constructor`, …)
+        // and silently call those instead of failing on a typo.
+        if (!Object.hasOwn(this.setStates, prop)) {
           throw new Error(`Cannot assign to this.s.${prop} — state key "${prop}" is not registered. Declare it on the class-field state object, or call this.useState/useStates first.`)
         }
         this.setStates[prop](newValue)
