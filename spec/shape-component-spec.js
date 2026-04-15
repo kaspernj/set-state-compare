@@ -551,6 +551,66 @@ describe("shapeComponent", () => {
     }).toThrowError(/state key "toString" is not registered/)
   })
 
+  it("exposes this.tt as a typed proxy of the subclass instance", () => {
+    /** @type {TtProxyShape | undefined} */
+    let shapeInstance
+
+    class TtProxyShape extends ShapeComponent {
+      state = {count: 0}
+
+      /**
+       * @param {Record<string, any>} props
+       */
+      constructor(props) {
+        super(props)
+        shapeInstance = this
+      }
+
+      /** @returns {number} */
+      doubledCount() {
+        return this.s.count * 2
+      }
+
+      render() {
+        return React.createElement("div", null, "")
+      }
+    }
+
+    const Component = shapeComponent(TtProxyShape)
+
+    act(() => {
+      TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    act(() => {
+      shapeInstance.s.count = 3
+    })
+
+    // Runtime: `this.tt.method()` dispatches to the subclass method.
+    expect(shapeInstance.tt.doubledCount()).toBe(6)
+
+    // Unknown-key reads still throw (baseline fetching-object behaviour).
+    expect(() => {
+      /** @type {any} */ (shapeInstance.tt).nonexistentMethod()
+    }).toThrowError(/Property not found: nonexistentMethod/)
+
+    // Static type check: `this.tt` is typed against the subclass, not `any`.
+    // Same `IsAny` trick as the class-field-state spec — resolves to `never`
+    // when the type widens to `any`, so `true` fails to assign and
+    // `npm run typecheck` breaks. Using `typeof doubledCount extends () => number`
+    // keeps us specific to the subclass's method signature.
+    /** @type {0 extends (1 & typeof shapeInstance.tt.doubledCount) ? never : (typeof shapeInstance.tt.doubledCount extends () => number ? true : never)} */
+    const _ttIsExactlySubclass = true
+
+    expect(_ttIsExactlySubclass).toBe(true)
+  })
+
   it("does not run componentDidUpdate when prop values are unchanged", () => {
     let updates = 0
 
