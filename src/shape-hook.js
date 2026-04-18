@@ -313,16 +313,17 @@ class ShapeHook {
   }
 
   /**
-   * Requests a re-render via the instance's update counter. No-op when
-   * unmounted so writes after teardown do not trigger React warnings.
-   * Defers via the after-paint queue when called mid-render.
+   * Requests a re-render via the instance's update counter. Silent no-op
+   * only after true teardown (not mounted and not mounting), so writes
+   * after unmount do not trigger React warnings. Pre-mount and mid-render
+   * writes defer through the after-paint queue and fire once mounted.
    * @returns {void}
    */
   scheduleRender() {
-    if (!this.isMounted()) return
     if (!this.__requestRender) return
+    if (!this.isMounted() && !this.isMounting()) return
 
-    if (shared.rendering > 0) {
+    if (shared.rendering > 0 || !this.isMounted()) {
       if (this.__renderQueued) return
       this.__renderQueued = true
       shared.enqueueRenderCallback(() => {
