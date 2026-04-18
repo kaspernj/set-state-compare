@@ -611,6 +611,111 @@ describe("shapeComponent", () => {
     expect(_ttIsExactlySubclass).toBe(true)
   })
 
+  it("queues a follow-up render for writes during the first render pass", async () => {
+    // Regression test: a setState during the initial render that lands
+    // AFTER the current render already read the old value must still
+    // schedule a follow-up render once mounted, otherwise the UI shows
+    // the stale value until some unrelated update.
+    let renderCount = 0
+
+    class PreMountWriteShape extends ShapeComponent {
+      state = {count: 0}
+
+      render() {
+        renderCount += 1
+        const rendered = this.s.count
+
+        // Mimic a child-in-the-same-tree mutating shared state during the
+        // initial render after we captured our read. The write happens
+        // while __mounting is true and __mounted is still false.
+        if (rendered === 0) {
+          this.setState({count: 7})
+        }
+
+        return React.createElement("div", null, String(rendered))
+      }
+    }
+
+    const Component = shapeComponent(PreMountWriteShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    // After the follow-up render fires, the tree must reflect the new value.
+    expect(renderer.toJSON().children).toEqual(["7"])
+    expect(renderCount).toBeGreaterThan(1)
+  })
+
+  it("allows setState after unmount without warning and updates this.state silently", () => {
+    /** @type {UnmountSafeShape | undefined} */
+    let shapeInstance
+    let renderCount = 0
+
+    class UnmountSafeShape extends ShapeComponent {
+      state = {count: 0}
+
+      /** @param {Record<string, any>} props */
+      constructor(props) {
+        super(props)
+        shapeInstance = this
+      }
+
+      render() {
+        renderCount += 1
+        return React.createElement("div", null, String(this.s.count))
+      }
+    }
+
+    const Component = shapeComponent(UnmountSafeShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    const renderCountBeforeUnmount = renderCount
+    const errorSpy = spyOn(console, "error")
+
+    act(() => {
+      renderer.unmount()
+    })
+
+    // Writing after unmount must not throw, must not log a React state-update-on-unmounted warning,
+    // and must still update the underlying this.state value.
+    expect(() => {
+      shapeInstance.s.count = 42
+    }).not.toThrow()
+
+    expect(shapeInstance.state.count).toBe(42)
+    expect(shapeInstance.s.count).toBe(42)
+    expect(renderCount).toBe(renderCountBeforeUnmount)
+
+    for (const call of errorSpy.calls.all()) {
+      const message = String(call.args[0])
+
+      expect(message).not.toMatch(/unmounted component/i)
+      expect(message).not.toMatch(/memory leak/i)
+    }
+  })
+
   it("does not run componentDidUpdate when prop values are unchanged", () => {
     let updates = 0
 

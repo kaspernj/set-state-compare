@@ -44,6 +44,12 @@ class ShapeHook {
     this.__committedState = {}
     this.__pendingDidUpdate = undefined
 
+    // Set by useShapeHook each render to React's stable counter setter.
+    // A single counter drives every re-render; per-key React state is gone.
+    /** @type {(() => void) | undefined} */
+    this.__requestRender = undefined
+    this.__renderQueued = false
+
     /** @type {P} */
     this.props = props
     /** @type {Record<string, (newValue: any, args?: {silent?: boolean}) => void>} */
@@ -268,42 +274,66 @@ class ShapeHook {
   }
 
   /**
+   * Registers a state key. Idempotent — default applies only on first
+   * registration. Re-registering returns the existing setter; the
+   * default value is ignored on later calls.
    * @param {string} stateName
    * @param {any} [defaultValue]
-   * @returns {any}
+   * @returns {(newValue: any, args?: {silent?: boolean}) => void}
    */
   useState(stateName, defaultValue) {
-    const effectiveDefault = (stateName in this.state) ? this.state[stateName] : defaultValue
-    const [stateValue, setState] = useState(effectiveDefault)
+    if (Object.hasOwn(this.setStates, stateName)) {
+      return this.setStates[stateName]
+    }
 
-    if (!(stateName in this.setStates)) {
-      const mutableState = /** @type {Record<string, any>} */ (this.state)
+    const mutableState = /** @type {Record<string, any>} */ (this.state)
 
-      mutableState[stateName] = stateValue
-      this.setStates[stateName] = (newValue, args) => {
-        if (referenceDifferent(mutableState[stateName], newValue)) {
-          const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (this))
-          const prevState = {...this.state}
+    if (!(stateName in mutableState)) {
+      mutableState[stateName] = defaultValue
+    }
 
-          mutableState[stateName] = newValue
+    this.setStates[stateName] = (newValue, args) => {
+      if (!referenceDifferent(mutableState[stateName], newValue)) return
 
-          // Avoid React error if using set-state while rendering or not mounted (like in a useMemo callback).
-          if (!args?.silent) {
-            if (lifecycle.componentDidUpdate) {
-              this.queueDidUpdate(this.__committedProps, prevState)
-            }
+      const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (this))
+      const prevState = {...this.state}
 
-            if (shared.rendering > 0 || !this.isMounted()) {
-              shared.enqueueRenderCallback(() => setState(newValue))
-            } else {
-              setState(newValue)
-            }
-          }
-        }
+      mutableState[stateName] = newValue
+
+      if (args?.silent) return
+
+      if (lifecycle.componentDidUpdate) {
+        this.queueDidUpdate(this.__committedProps, prevState)
       }
+
+      this.scheduleRender()
     }
 
     return this.setStates[stateName]
+  }
+
+  /**
+   * Requests a re-render via the instance's update counter. Silent no-op
+   * only after true teardown (not mounted and not mounting), so writes
+   * after unmount do not trigger React warnings. Pre-mount and mid-render
+   * writes defer through the after-paint queue and fire once mounted.
+   * @returns {void}
+   */
+  scheduleRender() {
+    if (!this.__requestRender) return
+    if (!this.isMounted() && !this.isMounting()) return
+
+    if (shared.rendering > 0 || !this.isMounted()) {
+      if (this.__renderQueued) return
+      this.__renderQueued = true
+      shared.enqueueRenderCallback(() => {
+        this.__renderQueued = false
+        if (this.isMounted() && this.__requestRender) this.__requestRender()
+      })
+      return
+    }
+
+    this.__requestRender()
   }
 
   /**
@@ -333,6 +363,10 @@ class ShapeHook {
  * @returns {T}
  */
 function useShapeHook(ShapeHookClass, props) {
+  // One counter per component drives all re-renders; state values live on
+  // the instance (this.state) so writes after unmount can update silently.
+  const [, setUpdateCount] = useState(0)
+
   // Count rendering to avoid setting state while rendering which causes a console-error from React.
   shared.rendering += 1
 
@@ -379,6 +413,10 @@ function useShapeHook(ShapeHookClass, props) {
 
       return instance
     }, [])
+
+    // setUpdateCount is stable across renders; assign once per instance.
+    shape.__requestRender ??= () => setUpdateCount((n) => n + 1)
+
     const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (shape))
     const prevProps = shape.props
 
