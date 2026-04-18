@@ -611,6 +611,65 @@ describe("shapeComponent", () => {
     expect(_ttIsExactlySubclass).toBe(true)
   })
 
+  it("allows setState after unmount without warning and updates this.state silently", () => {
+    /** @type {UnmountSafeShape | undefined} */
+    let shapeInstance
+    let renderCount = 0
+
+    class UnmountSafeShape extends ShapeComponent {
+      state = {count: 0}
+
+      /** @param {Record<string, any>} props */
+      constructor(props) {
+        super(props)
+        shapeInstance = this
+      }
+
+      render() {
+        renderCount += 1
+        return React.createElement("div", null, String(this.s.count))
+      }
+    }
+
+    const Component = shapeComponent(UnmountSafeShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    const renderCountBeforeUnmount = renderCount
+    const errorSpy = spyOn(console, "error")
+
+    act(() => {
+      renderer.unmount()
+    })
+
+    // Writing after unmount must not throw, must not log a React state-update-on-unmounted warning,
+    // and must still update the underlying this.state value.
+    expect(() => {
+      shapeInstance.s.count = 42
+    }).not.toThrow()
+
+    expect(shapeInstance.state.count).toBe(42)
+    expect(shapeInstance.s.count).toBe(42)
+    expect(renderCount).toBe(renderCountBeforeUnmount)
+
+    for (const call of errorSpy.calls.all()) {
+      const message = String(call.args[0])
+
+      expect(message).not.toMatch(/unmounted component/i)
+      expect(message).not.toMatch(/memory leak/i)
+    }
+  })
+
   it("does not run componentDidUpdate when prop values are unchanged", () => {
     let updates = 0
 

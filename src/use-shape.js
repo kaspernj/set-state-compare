@@ -12,11 +12,11 @@ class UseShapeState {
     /** @type {Record<string, (newValue: any, args?: {silent?: boolean}) => void>} */
     this.setStates = {}
 
-    /** @type {Record<string, (value: any) => void>} */
-    this.__setStatesActual = {}
-
-    /** @type {Record<string, boolean>} */
-    this.__queuedSetStates = {}
+    // Set by useShape each render to React's stable counter setter.
+    // A single counter drives every re-render; per-key React state is gone.
+    /** @type {(() => void) | undefined} */
+    this.__requestRender = undefined
+    this.__renderQueued = false
 
     /** @type {Record<string, any>} */
     this.state = {}
@@ -60,55 +60,53 @@ class UseShapeState {
   }
 
   /**
-   * Schedule the current state value for a hook state after paint.
-   *
-   * Hook state updates cannot run during another render, but we also do not want
-   * to keep a separate replay queue that depends on a future React commit.
-   * @param {string} stateName
+   * Requests a re-render via the instance's update counter. No-op when
+   * unmounted so writes after teardown do not trigger React warnings.
+   * Defers via the after-paint queue when called mid-render.
    * @returns {void}
    */
-  queueStateUpdate(stateName) {
-    if (this.__queuedSetStates[stateName]) return
+  scheduleRender() {
+    if (!this.__mounted) return
+    if (!this.__requestRender) return
 
-    this.__queuedSetStates[stateName] = true
-    shared.enqueueRenderCallback(() => {
-      delete this.__queuedSetStates[stateName]
+    if (shared.rendering > 0) {
+      if (this.__renderQueued) return
+      this.__renderQueued = true
+      shared.enqueueRenderCallback(() => {
+        this.__renderQueued = false
+        if (this.__mounted && this.__requestRender) this.__requestRender()
+      })
+      return
+    }
 
-      if (!this.__mounted) return
-
-      const setState = this.__setStatesActual[stateName]
-
-      if (!setState) return
-
-      setState(this.state[stateName])
-    })
+    this.__requestRender()
   }
 
   /**
+   * Registers a state key. Idempotent — default applies only on first
+   * registration. Re-registering returns the existing setter; the
+   * default value is ignored on later calls.
    * @param {string} stateName
    * @param {any} [defaultValue]
-   * @returns {any}
+   * @returns {(newValue: any, args?: {silent?: boolean}) => void}
    */
   useState(stateName, defaultValue) {
-    const [stateValue, setState] = useState(defaultValue)
-
-    this.__setStatesActual[stateName] = setState
+    if (Object.hasOwn(this.setStates, stateName)) {
+      return this.setStates[stateName]
+    }
 
     if (!(stateName in this.state)) {
-      this.state[stateName] = stateValue
-      this.setStates[stateName] = (/** @type {any} */ newValue, /** @type {{silent?: boolean} | undefined} */ args) => {
-        if (referenceDifferent(this.state[stateName], newValue)) {
-          this.state[stateName] = newValue
+      this.state[stateName] = defaultValue
+    }
 
-          if (!args?.silent) {
-            if (shared.rendering > 0 || !this.__mounted) { // Avoid React error if using set-state while rendering or not mounted (like in a useMemo callback)
-              this.queueStateUpdate(stateName)
-            } else {
-              setState(newValue)
-            }
-          }
-        }
-      }
+    this.setStates[stateName] = (/** @type {any} */ newValue, /** @type {{silent?: boolean} | undefined} */ args) => {
+      if (!referenceDifferent(this.state[stateName], newValue)) return
+
+      this.state[stateName] = newValue
+
+      if (args?.silent) return
+
+      this.scheduleRender()
     }
 
     return this.setStates[stateName]
@@ -137,6 +135,10 @@ class UseShapeState {
  * @returns {UseShapeState}
  */
 function useShape(props, opts) {
+  // One counter per instance drives all re-renders; state values live on
+  // shape.state so writes after unmount can update silently.
+  const [, setUpdateCount] = useState(0)
+
   /** @type {UseShapeState} */
   const shape = useMemo(
     () => {
@@ -146,6 +148,9 @@ function useShape(props, opts) {
     },
     []
   )
+
+  // setUpdateCount is stable across renders; assign once per instance.
+  shape.__requestRender ??= () => setUpdateCount((n) => n + 1)
 
   useEffect(() => {
     shape.__mounting = false

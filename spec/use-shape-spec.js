@@ -184,6 +184,48 @@ describe("useShape", () => {
     expect(json.children).toEqual(["2"])
   })
 
+  it("allows set after unmount without warning and updates state silently", () => {
+    /** @type {import("../src/use-shape.js").Shape | undefined} */
+    let shapeInstance
+
+    /** @returns {import("react").ReactElement} */
+    function UseShapeComponent() {
+      const shape = useShape({})
+      shapeInstance = shape
+      shape.useState("count", 0)
+
+      return React.createElement("div", null, String(shape.state.count))
+    }
+
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(UseShapeComponent))
+    })
+
+    if (!shapeInstance) throw new Error("shapeInstance was never assigned")
+
+    const errorSpy = spyOn(console, "error")
+
+    act(() => {
+      renderer.unmount()
+    })
+
+    expect(() => {
+      shapeInstance.set({count: 42})
+    }).not.toThrow()
+
+    expect(shapeInstance.state.count).toBe(42)
+
+    for (const call of errorSpy.calls.all()) {
+      const message = String(call.args[0])
+
+      expect(message).not.toMatch(/unmounted component/i)
+      expect(message).not.toMatch(/memory leak/i)
+    }
+  })
+
   it("reuses the main shapeComponent implementation for named exports", () => {
     let updates = 0
 
