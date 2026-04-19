@@ -247,6 +247,7 @@ describe("shapeComponent", () => {
     expect(initializer.calls.count()).toBe(1)
     expect(renderer.toJSON().children).toEqual(["2"])
   })
+
   it("runs componentDidUpdate when props change with defaultProps", () => {
     let updates = 0
     /** @type {Record<string, any> | undefined} */
