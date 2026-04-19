@@ -39,9 +39,10 @@ describe("useShapeHook", () => {
 
     /** @augments {ShapeHook<{name: string}>} */
     class CounterHook extends ShapeHook {
+      state = {count: 0}
+
       setup() {
         setupCalls += 1
-        this.useState("count", 0)
       }
     }
 
@@ -92,6 +93,8 @@ describe("useShapeHook", () => {
 
     /** @augments {ShapeHook<{name: string}>} */
     class LifecycleHook extends ShapeHook {
+      state = {count: 0}
+
       componentDidMount() {
         mounted += 1
       }
@@ -102,10 +105,6 @@ describe("useShapeHook", () => {
 
       componentWillUnmount() {
         unmounted += 1
-      }
-
-      setup() {
-        this.useState("count", 0)
       }
     }
 
@@ -156,8 +155,9 @@ describe("useShapeHook", () => {
 
     /** @augments {ShapeHook<{name: string}>} */
     class MountedHook extends ShapeHook {
+      state = {count: 0}
+
       setup() {
-        this.useState("count", 0)
         mountedInSetup = this.isMounted()
         mountingInSetup = this.isMounting()
       }

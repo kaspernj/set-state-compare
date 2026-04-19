@@ -3,14 +3,13 @@ import {ShapeHook, useShapeHook} from "./shape-hook.js"
 /**
  * @template {Record<string, any>} [P=Record<string, any>]
  * @template {Record<string, any>} [S=Record<string, any>]
- * @template {Record<string, any>} [I=Record<string, any>]
- * @augments {ShapeHook<P, S, I>}
+ * @augments {ShapeHook<P, S>}
  */
 class ShapeComponent extends ShapeHook {}
 
 /**
  * @template {Record<string, any>} P
- * @param {{defaultProps?: Record<string, any>, propTypes?: Record<string, import("prop-types").Validator<any>>, name: string} & (new (props: P) => ShapeComponent<P, any, any>)} ShapeClass
+ * @param {{defaultProps?: Record<string, any>, propTypes?: Record<string, import("prop-types").Validator<any>>, name: string} & (new (props: P) => ShapeComponent<P, any>)} ShapeClass
  * @returns {import("react").FunctionComponent<P>}
  */
 const shapeComponent = (ShapeClass) => {

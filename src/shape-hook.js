@@ -18,7 +18,6 @@ import {useLayoutEffect, useMemo, useState} from "react"
 /**
  * @template {Record<string, any>} [P=Record<string, any>]
  * @template {Record<string, any>} [S=Record<string, any>]
- * @template {Record<string, any>} [I=Record<string, any>]
  */
 class ShapeHook {
   /** @type {Record<string, any> | undefined} */
@@ -63,12 +62,13 @@ class ShapeHook {
     this.__firstRenderCompleted = false
     /**
      * Proxy for `this` that throws on unknown property reads. Typed as
-     * `this & I` so subclasses can opt into strict `this.tt` typing for
-     * values assigned through `setInstance(...)`, while the default keeps
-     * `tt` permissive for apps that inject dynamic instance helpers.
-     * @type {this & I}
+     * `this` so subclasses get correctly-typed access to their own
+     * methods and fields through `this.tt.someHandler` — the same
+     * narrowing approach used for `this.p` (`this["props"]`) and
+     * `this.s` (`this["state"]`).
+     * @type {this}
      */
-    this.tt = /** @type {this & I} */ (fetchingObject(this))
+    this.tt = /** @type {this} */ (fetchingObject(this))
 
     /**
      * Proxy for `this.props`. Typed as `this["props"]` so subclasses that
@@ -86,9 +86,9 @@ class ShapeHook {
      * instead of falling back to the default `Record<string, any>`.
      *
      * Writable: `this.s.foo = value` is equivalent to
-     * `this.setState({foo: value})`. Only top-level state keys registered
-     * via class-field `state`, `useState`, or `useStates` are writable;
-     * assigning to an unregistered key throws. Nested mutation
+     * `this.setState({foo: value})`. Only top-level state keys declared on
+     * the class-field `state` object are writable; assigning to an
+     * unregistered key throws. Nested mutation
      * (`this.s.foo.bar = 1`) writes to the underlying state object but
      * does NOT schedule a re-render — call `this.setState` explicitly
      * for deep updates.
@@ -107,7 +107,7 @@ class ShapeHook {
         // inherited `Object.prototype` keys (`toString`, `constructor`, …)
         // and silently call those instead of failing on a typo.
         if (!Object.hasOwn(this.setStates, prop)) {
-          throw new Error(`Cannot assign to this.s.${prop} — state key "${prop}" is not registered. Declare it on the class-field state object, or call this.useState/useStates first.`)
+          throw new Error(`Cannot assign to this.s.${prop} — state key "${prop}" is not registered. Declare it on the class-field state object.`)
         }
         this.setStates[prop](newValue)
         return true
@@ -193,16 +193,6 @@ class ShapeHook {
   }
 
   /**
-   * @param {Partial<I> & Record<string, any>} variables
-   * @returns {void}
-   */
-  setInstance(variables) {
-    for (const name in variables) {
-      /** @type {Record<string, any>} */ (this)[name] = variables[name]
-    }
-  }
-
-  /**
    * @param {Partial<S> | ((state: S) => Partial<S>)} statesList
    * @param {function() : void} [callback]
    * @returns {void}
@@ -274,45 +264,6 @@ class ShapeHook {
   }
 
   /**
-   * Registers a state key. Idempotent — default applies only on first
-   * registration. Re-registering returns the existing setter; the
-   * default value is ignored on later calls.
-   * @param {string} stateName
-   * @param {any} [defaultValue]
-   * @returns {(newValue: any, args?: {silent?: boolean}) => void}
-   */
-  useState(stateName, defaultValue) {
-    if (Object.hasOwn(this.setStates, stateName)) {
-      return this.setStates[stateName]
-    }
-
-    const mutableState = /** @type {Record<string, any>} */ (this.state)
-
-    if (!(stateName in mutableState)) {
-      mutableState[stateName] = defaultValue
-    }
-
-    this.setStates[stateName] = (newValue, args) => {
-      if (!referenceDifferent(mutableState[stateName], newValue)) return
-
-      const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (this))
-      const prevState = {...this.state}
-
-      mutableState[stateName] = newValue
-
-      if (args?.silent) return
-
-      if (lifecycle.componentDidUpdate) {
-        this.queueDidUpdate(this.__committedProps, prevState)
-      }
-
-      this.scheduleRender()
-    }
-
-    return this.setStates[stateName]
-  }
-
-  /**
    * Requests a re-render via the instance's update counter. Silent no-op
    * only after true teardown (not mounted and not mounting), so writes
    * after unmount do not trigger React warnings. Pre-mount and mid-render
@@ -336,23 +287,43 @@ class ShapeHook {
     this.__requestRender()
   }
 
-  /**
-   * @param {Array<string>|Record<string, any>} statesList
-   * @returns {void}
-   */
-  useStates(statesList) {
-    if (Array.isArray(statesList)) {
-      for(const stateName of statesList) {
-        this.useState(stateName)
-      }
-    } else {
-      for(const stateName in statesList) {
-        const defaultValue = statesList[stateName]
+}
 
-        this.useState(stateName, defaultValue)
-      }
-    }
+/**
+ * @param {ShapeHook<Record<string, any>, Record<string, any>>} shape
+ * @param {string} stateName
+ * @param {any} [defaultValue]
+ * @returns {(newValue: any, args?: {silent?: boolean}) => void}
+ */
+function registerShapeHookState(shape, stateName, defaultValue) {
+  if (Object.hasOwn(shape.setStates, stateName)) {
+    return shape.setStates[stateName]
   }
+
+  const mutableState = /** @type {Record<string, any>} */ (shape.state)
+
+  if (!(stateName in mutableState)) {
+    mutableState[stateName] = defaultValue
+  }
+
+  shape.setStates[stateName] = (newValue, stateArgs) => {
+    if (!referenceDifferent(mutableState[stateName], newValue)) return
+
+    const lifecycle = /** @type {ShapeHookLifecycleHooks} */ (/** @type {unknown} */ (shape))
+    const prevState = {...shape.state}
+
+    mutableState[stateName] = newValue
+
+    if (stateArgs?.silent) return
+
+    if (lifecycle.componentDidUpdate) {
+      shape.queueDidUpdate(shape.__committedProps, prevState)
+    }
+
+    shape.scheduleRender()
+  }
+
+  return shape.setStates[stateName]
 }
 
 /**
@@ -423,9 +394,9 @@ function useShapeHook(ShapeHookClass, props) {
     shape.props = actualProps
     const propsChanged = !memoCompareProps(prevProps, actualProps)
 
-    // Auto-register useState hooks for state keys defined as class fields.
+    // Auto-register state keys declared as class fields.
     for (const stateName of shape.__classFieldStateKeys) {
-      shape.useState(stateName, shape.state[stateName])
+      registerShapeHookState(shape, stateName, shape.state[stateName])
     }
 
     if (lifecycle.setup) {
