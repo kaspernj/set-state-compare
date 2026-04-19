@@ -3,6 +3,7 @@ import {dig} from "diggerize"
 import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
+import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import shared from "./shared.js"
 import {useLayoutEffect, useMemo, useState} from "react"
 
@@ -289,7 +290,7 @@ class ShapeHook {
     const mutableState = /** @type {Record<string, any>} */ (this.state)
 
     if (!(stateName in mutableState)) {
-      mutableState[stateName] = defaultValue
+      mutableState[stateName] = resolveInitialStateValue(defaultValue)
     }
 
     this.setStates[stateName] = (newValue, args) => {

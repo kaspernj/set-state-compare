@@ -1,4 +1,5 @@
 import {referenceDifferent} from "./diff-utils.js"
+import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import {useEffect, useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
 import {shapeComponent} from "./shape-component.js"
@@ -97,7 +98,7 @@ class UseShapeState {
     }
 
     if (!(stateName in this.state)) {
-      this.state[stateName] = defaultValue
+      this.state[stateName] = resolveInitialStateValue(defaultValue)
     }
 
     this.setStates[stateName] = (/** @type {any} */ newValue, /** @type {{silent?: boolean} | undefined} */ args) => {

@@ -220,6 +220,29 @@ describe("shapeComponent", () => {
     expect(renderedCountSeenInDidUpdate).toBe(1)
   })
 
+  it("resolves function state defaults once during first registration", () => {
+    const initializer = jasmine.createSpy("initializer").and.returnValue(["a", "b"])
+
+    class LazyDefaultShape extends ShapeComponent {
+      render() {
+        this.useState("items", initializer)
+
+        return React.createElement("div", null, String(this.state.items.length))
+      }
+    }
+
+    const Component = shapeComponent(LazyDefaultShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    expect(initializer.calls.count()).toBe(1)
+    expect(renderer.toJSON().children).toEqual(["2"])
+  })
+
   it("runs componentDidUpdate when props change with defaultProps", () => {
     let updates = 0
     /** @type {Record<string, any> | undefined} */
