@@ -71,7 +71,7 @@ export default shapeComponent(Counter)
 
 ### Typed Props and State
 
-`ShapeComponent` and `ShapeHook` support generic type parameters for props (`P`) and state (`S`) via JSDoc `@augments`. This gives you type-checked `this.props`, `this.p`, `this.state`, `this.s`, and `this.setState` calls.
+`ShapeComponent` and `ShapeHook` support generic type parameters for props (`P`), state (`S`), and injected instance helpers (`I`) via JSDoc `@augments`. This gives you type-checked `this.props`, `this.p`, `this.state`, `this.s`, and `this.setState` calls, with optional `this.tt` typing for values assigned through `setInstance(...)`.
 
 #### Typed props
 
@@ -160,12 +160,19 @@ Only registered top-level keys are writable — assigning to an undeclared key t
 
 #### Typed `this.tt`
 
-`this.tt` is a proxy of the instance that throws on unknown property reads. Typed as `this`, so JSX handlers like `onPress={this.tt.onFooPress}` are checked against the subclass's actual method signatures — typos fail typecheck, not just at runtime.
+`this.tt` is a proxy of the instance that throws on unknown property reads. It is typed as `this & I`, so JSX handlers like `onPress={this.tt.onFooPress}` stay checked against the subclass's actual methods, and apps that use `setInstance(...)` can opt into strict typings for injected helpers.
 
 ```js
+/** @augments {ShapeComponent<{}, {count: number}, {labelPrefix: string}>} */
 class Counter extends ShapeComponent {
+  state = /** @type {{count: number}} */ ({count: 0})
+
+  setup() {
+    this.setInstance({labelPrefix: "Count"})
+  }
+
   render() {
-    return React.createElement("button", {onPress: this.tt.onIncrementPress})
+    return React.createElement("button", {onPress: this.tt.onIncrementPress}, `${this.tt.labelPrefix}: ${this.s.count}`)
   }
 
   onIncrementPress = () => {

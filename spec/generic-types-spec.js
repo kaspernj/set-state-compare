@@ -188,6 +188,48 @@ describe("generic type forwarding", () => {
     })
   })
 
+  describe("ShapeComponent with typed setInstance values", () => {
+    it("allows tt typing to include injected instance helpers", () => {
+      /** @type {InstanceTypedComponent | undefined} */
+      let componentInstance
+
+      /**
+       * @augments {ShapeComponent<{name: string}, {active: boolean}, {labelPrefix: string}>}
+       */
+      class InstanceTypedComponent extends ShapeComponent {
+        state = /** @type {{active: boolean}} */ ({active: false})
+
+        setup() {
+          this.setInstance({labelPrefix: "Hello"})
+        }
+
+        render() {
+          componentInstance = this
+
+          return React.createElement("div", null, `${this.tt.labelPrefix}:${this.props.name}:${this.s.active}`)
+        }
+      }
+
+      const Component = shapeComponent(InstanceTypedComponent)
+      /** @type {import("react-test-renderer").ReactTestRenderer} */
+      let renderer
+
+      act(() => {
+        renderer = TestRenderer.create(React.createElement(Component, {name: "Louie"}))
+      })
+
+      act(() => {
+        flushAfterPaint()
+      })
+
+      expect(componentInstance.tt.labelPrefix).toBe("Hello")
+
+      act(() => {
+        renderer.unmount()
+      })
+    })
+  })
+
   describe("ShapeComponent with typed props and state via memo", () => {
     it("forwards prop types through memo(shapeComponent(...)) wrapper", () => {
       /** @type {MemoComponent | undefined} */

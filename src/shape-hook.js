@@ -18,6 +18,7 @@ import {useLayoutEffect, useMemo, useState} from "react"
 /**
  * @template {Record<string, any>} [P=Record<string, any>]
  * @template {Record<string, any>} [S=Record<string, any>]
+ * @template {Record<string, any>} [I=Record<string, any>]
  */
 class ShapeHook {
   /** @type {Record<string, any> | undefined} */
@@ -62,13 +63,12 @@ class ShapeHook {
     this.__firstRenderCompleted = false
     /**
      * Proxy for `this` that throws on unknown property reads. Typed as
-     * `this` so subclasses get correctly-typed access to their own
-     * methods and fields through `this.tt.someHandler` — the same
-     * narrowing approach used for `this.p` (`this["props"]`) and
-     * `this.s` (`this["state"]`).
-     * @type {this}
+     * `this & I` so subclasses can opt into strict `this.tt` typing for
+     * values assigned through `setInstance(...)`, while the default keeps
+     * `tt` permissive for apps that inject dynamic instance helpers.
+     * @type {this & I}
      */
-    this.tt = /** @type {this} */ (fetchingObject(this))
+    this.tt = /** @type {this & I} */ (fetchingObject(this))
 
     /**
      * Proxy for `this.props`. Typed as `this["props"]` so subclasses that
@@ -193,7 +193,7 @@ class ShapeHook {
   }
 
   /**
-   * @param {Record<string, any>} variables
+   * @param {Partial<I> & Record<string, any>} variables
    * @returns {void}
    */
   setInstance(variables) {
