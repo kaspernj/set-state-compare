@@ -1,22 +1,9 @@
 import {referenceDifferent} from "./diff-utils.js"
+import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import {useEffect, useMemo, useState} from "react"
 import fetchingObject from "fetching-object"
 import {shapeComponent} from "./shape-component.js"
 import shared from "./shared.js"
-
-/**
- * Preserve React's lazy-initializer semantics for function defaults while
- * still storing the resolved value directly on shape.state.
- * @param {any} defaultValue
- * @returns {any}
- */
-function resolveInitialStateValue(defaultValue) {
-  if (typeof defaultValue == "function") {
-    return defaultValue()
-  }
-
-  return defaultValue
-}
 
 class UseShapeState {
   constructor() {
