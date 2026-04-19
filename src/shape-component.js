@@ -9,7 +9,7 @@ class ShapeComponent extends ShapeHook {}
 
 /**
  * @template {Record<string, any>} P
- * @param {{defaultProps?: Record<string, any>, propTypes?: Record<string, import("prop-types").Validator<any>>, name: string} & (new (props: P) => ShapeComponent<P>)} ShapeClass
+ * @param {{defaultProps?: Record<string, any>, propTypes?: Record<string, import("prop-types").Validator<any>>, name: string} & (new (props: P) => ShapeComponent<P, any>)} ShapeClass
  * @returns {import("react").FunctionComponent<P>}
  */
 const shapeComponent = (ShapeClass) => {

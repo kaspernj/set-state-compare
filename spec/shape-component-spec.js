@@ -26,7 +26,6 @@ function flushAfterPaint() {
     callback()
   }
 }
-
 describe("shapeComponent", () => {
   beforeEach(() => {
     resetShared()
@@ -88,6 +87,11 @@ describe("shapeComponent", () => {
     let shapeInstance
 
     class TestShape extends ShapeComponent {
+      state = {
+        count: 0,
+        data: {name: "Donald"}
+      }
+
       /** @param {Record<string, any>} props */
       constructor(props) {
         super(props)
@@ -98,8 +102,6 @@ describe("shapeComponent", () => {
 
       render() {
         this.renderCount += 1
-        this.useState("count", 0)
-        this.useState("data", {name: "Donald"})
 
         return React.createElement("div", null, String(this.state.count))
       }
@@ -142,6 +144,8 @@ describe("shapeComponent", () => {
     let unmounted = 0
 
     class LifecycleShape extends ShapeComponent {
+      state = {count: 0}
+
       componentDidMount() {
         mounted += 1
       }
@@ -155,8 +159,6 @@ describe("shapeComponent", () => {
       }
 
       render() {
-        this.useState("count", 0)
-
         return React.createElement("div", null, "Lifecycle")
       }
     }
@@ -189,8 +191,9 @@ describe("shapeComponent", () => {
     let shapeInstance
 
     class TestShape extends ShapeComponent {
+      state = {count: 0}
+
       render() {
-        this.useState("count", 0)
         this.renderedCount = this.state.count
         shapeInstance = this
 
@@ -224,9 +227,11 @@ describe("shapeComponent", () => {
     const initializer = jasmine.createSpy("initializer").and.returnValue(["a", "b"])
 
     class LazyDefaultShape extends ShapeComponent {
-      render() {
-        this.useState("items", initializer)
+      state = {
+        items: initializer()
+      }
 
+      render() {
         return React.createElement("div", null, String(this.state.items.length))
       }
     }
@@ -295,6 +300,8 @@ describe("shapeComponent", () => {
     let shapeInstance
 
     class DefaultPropsShape extends ShapeComponent {
+      state = {count: 2}
+
       /**
        * @param {Record<string, any>} prevProps
        * @param {Record<string, any>} prevState
@@ -305,7 +312,6 @@ describe("shapeComponent", () => {
       }
 
       render() {
-        this.useState("count", 2)
         shapeInstance = this
 
         return React.createElement("div", null, `${this.props.name}:${this.state.count}`)
@@ -354,6 +360,8 @@ describe("shapeComponent", () => {
     let shapeInstance
 
     class PropUpdateShape extends ShapeComponent {
+      state = {count: 0}
+
       componentDidUpdate(prevProps) {
         previousPropsCalls.push(prevProps)
 
@@ -363,7 +371,6 @@ describe("shapeComponent", () => {
       }
 
       render() {
-        this.useState("count", 0)
         shapeInstance = this
 
         return React.createElement("div", null, `${this.props.name}:${this.state.count}`)

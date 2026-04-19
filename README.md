@@ -53,15 +53,16 @@ Modes:
 - `Shape.setMode("setState")` uses `setState` on the component.
 
 ## ShapeComponent
-Class-style component wrapper with hooks-friendly state helpers.
-`setup()` runs before each render, so initialization in `setup()` is re-applied every render. It is also the recommended place to call hook-style helpers like `useState`/`useStates`.
+Class-style component wrapper with hook-like lifecycle helpers.
+`setup()` runs before each render, so it is suitable for derived values and render-time side work. Declare component state on the class-field `state` object.
 
 ```js
 import {ShapeComponent, shapeComponent} from "set-state-compare/build/shape-component.js"
 
 class Counter extends ShapeComponent {
+  state = {count: 0}
+
   render() {
-    this.useState("count", 0)
     return React.createElement("div", null, String(this.state.count))
   }
 }
@@ -84,8 +85,10 @@ export default shapeComponent(Counter)
 
 /** @augments {ShapeComponent<CounterProps>} */
 class Counter extends ShapeComponent {
-  setup() {
-    this.useStates({count: this.props.initialCount})
+  /** @param {CounterProps} props */
+  constructor(props) {
+    super(props)
+    this.state = {count: props.initialCount}
   }
 
   render() {
@@ -110,9 +113,7 @@ export default memo(shapeComponent(Counter))
 
 /** @augments {ShapeComponent<{}, TimerState>} */
 class Timer extends ShapeComponent {
-  setup() {
-    this.useStates({elapsed: 0, running: false})
-  }
+  state = /** @type {TimerState} */ ({elapsed: 0, running: false})
 
   render() {
     // this.state.elapsed -> number
@@ -125,7 +126,7 @@ class Timer extends ShapeComponent {
 
 #### Class field state
 
-State can also be defined as a class field instead of calling `useStates()`. The hooks are auto-registered from the class field keys.
+State is defined as a class field. The keys are auto-registered for `setState` and writable `this.s` access.
 
 ```js
 /** @augments {ShapeComponent<{name: string}, {label: string, active: boolean}>} */
@@ -164,8 +165,10 @@ Only registered top-level keys are writable — assigning to an undeclared key t
 
 ```js
 class Counter extends ShapeComponent {
+  state = /** @type {{count: number}} */ ({count: 0})
+
   render() {
-    return React.createElement("button", {onPress: this.tt.onIncrementPress})
+    return React.createElement("button", {onPress: this.tt.onIncrementPress}, String(this.s.count))
   }
 
   onIncrementPress = () => {
@@ -186,9 +189,7 @@ The same pattern works with `ShapeHook` and `useShapeHook`:
 
 /** @augments {ShapeHook<FormHookProps, {submitted: boolean}>} */
 class FormHook extends ShapeHook {
-  setup() {
-    this.useStates({submitted: false})
-  }
+  state = {submitted: false}
 }
 
 function FormHost(props) {
@@ -226,15 +227,13 @@ function Example(props) {
 ```
 
 ## useShapeHook
-Class-based hooks with `ShapeComponent`-style lifecycle methods like `setup`, `componentDidMount`, and `componentWillUnmount`.
+Class-based hooks with `ShapeComponent`-style lifecycle methods like `setup`, `componentDidMount`, and `componentWillUnmount`. Declare hook state on the class-field `state` object.
 
 ```js
 import useShapeHook, {ShapeHook} from "set-state-compare/build/shape-hook.js"
 
 class MyShapeHookClass extends ShapeHook {
-  setup() {
-    this.useState("count", 0)
-  }
+  state = {count: 0}
 }
 
 function Example(props) {

@@ -53,9 +53,7 @@ describe("generic type forwarding", () => {
 
       /** @augments {ShapeHook<TypedProps>} */
       class TypedHook extends ShapeHook {
-        setup() {
-          this.useState("ready", false)
-        }
+        state = {ready: false}
       }
 
       /**
@@ -101,9 +99,7 @@ describe("generic type forwarding", () => {
 
       /** @augments {ShapeHook<{name: string}, TypedState>} */
       class StatefulHook extends ShapeHook {
-        setup() {
-          this.useStates({label: "hello", active: false})
-        }
+        state = /** @type {TypedState} */ ({label: "hello", active: false})
       }
 
       /**
@@ -197,9 +193,7 @@ describe("generic type forwarding", () => {
        * @augments {ShapeComponent<TypedProps, TypedState>}
        */
       class MemoComponent extends ShapeComponent {
-        setup() {
-          this.useStates({label: "initial", active: true})
-        }
+        state = /** @type {TypedState} */ ({label: "initial", active: true})
 
         render() {
           componentInstance = this
