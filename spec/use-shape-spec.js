@@ -83,6 +83,31 @@ describe("useShape", () => {
     expect(output.children).toEqual(["2"])
   })
 
+  it("resolves function state defaults once during first registration", () => {
+    const initializer = jasmine.createSpy("initializer").and.returnValue(["a", "b"])
+
+    /**
+     * @returns {import("react").ReactElement}
+     */
+    function UseShapeComponent() {
+      const shape = useShape({})
+
+      shape.useState("items", initializer)
+
+      return React.createElement("div", null, String(shape.state.items.length))
+    }
+
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(UseShapeComponent))
+    })
+
+    expect(initializer.calls.count()).toBe(1)
+    expect(renderer.toJSON().children).toEqual(["2"])
+  })
+
   it("flushes deferred updates without a later React commit", async () => {
     /** @type {(value: number) => void} */
     let resolveAsyncUpdate

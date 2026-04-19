@@ -4,6 +4,20 @@ import fetchingObject from "fetching-object"
 import {shapeComponent} from "./shape-component.js"
 import shared from "./shared.js"
 
+/**
+ * Preserve React's lazy-initializer semantics for function defaults while
+ * still storing the resolved value directly on shape.state.
+ * @param {any} defaultValue
+ * @returns {any}
+ */
+function resolveInitialStateValue(defaultValue) {
+  if (typeof defaultValue == "function") {
+    return defaultValue()
+  }
+
+  return defaultValue
+}
+
 class UseShapeState {
   constructor() {
     this.__mounting = true
@@ -97,7 +111,7 @@ class UseShapeState {
     }
 
     if (!(stateName in this.state)) {
-      this.state[stateName] = defaultValue
+      this.state[stateName] = resolveInitialStateValue(defaultValue)
     }
 
     this.setStates[stateName] = (/** @type {any} */ newValue, /** @type {{silent?: boolean} | undefined} */ args) => {

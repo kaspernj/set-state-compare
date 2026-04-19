@@ -4,6 +4,20 @@ import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
 import shared from "./shared.js"
+
+/**
+ * Preserve React's lazy-initializer semantics for function defaults while
+ * still storing the resolved value directly on this.state.
+ * @param {any} defaultValue
+ * @returns {any}
+ */
+function resolveInitialStateValue(defaultValue) {
+  if (typeof defaultValue == "function") {
+    return defaultValue()
+  }
+
+  return defaultValue
+}
 import {useLayoutEffect, useMemo, useState} from "react"
 
 /**
@@ -289,7 +303,7 @@ class ShapeHook {
     const mutableState = /** @type {Record<string, any>} */ (this.state)
 
     if (!(stateName in mutableState)) {
-      mutableState[stateName] = defaultValue
+      mutableState[stateName] = resolveInitialStateValue(defaultValue)
     }
 
     this.setStates[stateName] = (newValue, args) => {
