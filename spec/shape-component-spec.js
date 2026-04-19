@@ -248,6 +248,48 @@ describe("shapeComponent", () => {
     expect(renderer.toJSON().children).toEqual(["2"])
   })
 
+  it("keeps class useStates() compatibility in setup()", () => {
+    class LegacySetupShape extends ShapeComponent {
+      setup() {
+        this.useStates({count: 2})
+      }
+
+      render() {
+        return React.createElement("div", null, String(this.s.count))
+      }
+    }
+
+    const Component = shapeComponent(LegacySetupShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    expect(renderer.toJSON().children).toEqual(["2"])
+  })
+
+  it("keeps class useState() compatibility in render()", () => {
+    class LegacyRenderShape extends ShapeComponent {
+      render() {
+        this.useState("count", 3)
+
+        return React.createElement("div", null, String(this.s.count))
+      }
+    }
+
+    const Component = shapeComponent(LegacyRenderShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component))
+    })
+
+    expect(renderer.toJSON().children).toEqual(["3"])
+  })
+
   it("runs componentDidUpdate when props change with defaultProps", () => {
     let updates = 0
     /** @type {Record<string, any> | undefined} */

@@ -3,6 +3,7 @@ import {dig} from "diggerize"
 import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
+import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import shared from "./shared.js"
 import {useLayoutEffect, useMemo, useState} from "react"
 
@@ -261,6 +262,41 @@ class ShapeHook {
     }
 
     return style
+  }
+
+  /**
+   * Backward-compatible class-component state registration helper.
+   * Prefer class-field `state = {...}` for new code, but existing
+   * ShapeComponent consumers still call `this.useState(...)` in `setup()`
+   * and `render()`.
+   * @param {string} stateName
+   * @param {any} [defaultValue]
+   * @returns {(newValue: any, args?: {silent?: boolean}) => void}
+   */
+  useState(stateName, defaultValue) {
+    return registerShapeHookState(
+      this,
+      stateName,
+      resolveInitialStateValue(defaultValue)
+    )
+  }
+
+  /**
+   * Backward-compatible class-component state registration helper.
+   * Prefer class-field `state = {...}` for new code.
+   * @param {Array<string>|Record<string, any>} statesList
+   * @returns {void}
+   */
+  useStates(statesList) {
+    if (Array.isArray(statesList)) {
+      for (const stateName of statesList) {
+        this.useState(stateName)
+      }
+    } else {
+      for (const stateName in statesList) {
+        this.useState(stateName, statesList[stateName])
+      }
+    }
   }
 
   /**
