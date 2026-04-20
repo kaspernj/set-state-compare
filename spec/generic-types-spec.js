@@ -1,28 +1,34 @@
+import {
+  flushRenderingCallbacks,
+  getAfterPaintCallbacks,
+  getRenderingCallbacks,
+  resetSharedStateForTests,
+  setAfterPaintCallbacks,
+  setAfterPaintHandle,
+  setRendering
+} from "../src/shared.js"
+
 import React from "react"
 import TestRenderer, {act} from "react-test-renderer"
 import {ShapeComponent, shapeComponent} from "../src/shape-component.js"
 import {ShapeHook, useShapeHook} from "../src/shape-hook.js"
 import memo from "../src/memo.js"
-import shared from "../src/shared.js"
 
 /**
  * @returns {void}
  */
 function resetShared() {
-  shared.rendering = 0
-  shared.renderingCallbacks = []
-  shared.afterPaintCallbacks = []
-  shared.afterPaintHandle = undefined
+  resetSharedStateForTests()
 }
 
 /**
  * @returns {void}
  */
 function flushAfterPaint() {
-  const callbacks = shared.afterPaintCallbacks
+  const callbacks = getAfterPaintCallbacks()
 
-  shared.afterPaintCallbacks = []
-  shared.afterPaintHandle = undefined
+  setAfterPaintCallbacks([])
+  setAfterPaintHandle(undefined)
 
   for (const callback of callbacks) {
     callback()

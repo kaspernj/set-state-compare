@@ -4,7 +4,7 @@ import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
 import resolveInitialStateValue from "./resolve-initial-state-value.js"
-import shared from "./shared.js"
+import {enqueueRenderCallback, getRendering, scheduleAfterPaint, setRendering} from "./shared.js"
 import {useLayoutEffect, useMemo, useState} from "react"
 
 /**
@@ -214,7 +214,7 @@ class ShapeHook {
     }
 
     if (callback) {
-      shared.enqueueRenderCallback(callback)
+      enqueueRenderCallback(callback)
     }
   }
 
@@ -310,10 +310,10 @@ class ShapeHook {
     if (!this.__requestRender) return
     if (!this.isMounted() && !this.isMounting()) return
 
-    if (shared.rendering > 0 || !this.isMounted()) {
+    if (getRendering() > 0 || !this.isMounted()) {
       if (this.__renderQueued) return
       this.__renderQueued = true
-      shared.enqueueRenderCallback(() => {
+      enqueueRenderCallback(() => {
         this.__renderQueued = false
         if (this.isMounted() && this.__requestRender) this.__requestRender()
       })
@@ -375,7 +375,7 @@ function useShapeHook(ShapeHookClass, props) {
   const [, setUpdateCount] = useState(0)
 
   // Count rendering to avoid setting state while rendering which causes a console-error from React.
-  shared.rendering += 1
+  setRendering(getRendering() + 1)
 
   try {
     // Calculate and validate props.
@@ -478,8 +478,8 @@ function useShapeHook(ShapeHookClass, props) {
 
     return /** @type {T} */ (shape)
   } finally {
-    shared.scheduleAfterPaint(() => {
-      shared.rendering = Math.max(0, shared.rendering - 1)
+    scheduleAfterPaint(() => {
+      setRendering(Math.max(0, getRendering() - 1))
     })
   }
 }

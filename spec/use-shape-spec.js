@@ -1,17 +1,23 @@
+import {
+  flushRenderingCallbacks,
+  getAfterPaintCallbacks,
+  getRenderingCallbacks,
+  resetSharedStateForTests,
+  setAfterPaintCallbacks,
+  setAfterPaintHandle,
+  setRendering
+} from "../src/shared.js"
+
 import React from "react"
 import TestRenderer, {act} from "react-test-renderer"
 import useShape, {shapeComponent} from "../src/use-shape.js"
 import {ShapeComponent} from "../src/shape-component.js"
-import shared from "../src/shared.js"
 
 /**
  * @returns {void}
  */
 function resetShared() {
-  shared.rendering = 0
-  shared.renderingCallbacks = []
-  shared.afterPaintCallbacks = []
-  shared.afterPaintHandle = undefined
+  resetSharedStateForTests()
 }
 
 describe("useShape", () => {
@@ -150,7 +156,7 @@ describe("useShape", () => {
     expect(renderer.toJSON().children).toEqual(["0"])
 
     act(() => {
-      shared.rendering = 1
+      setRendering(1)
       resolveAsyncUpdate(1)
     })
 
@@ -159,11 +165,11 @@ describe("useShape", () => {
       await Promise.resolve()
     })
 
-    shared.rendering = 0
+    setRendering(0)
 
-    if (shared.renderingCallbacks.length > 0) {
+    if (getRenderingCallbacks().length > 0) {
       act(() => {
-        shared.flushRenderingCallbacks()
+        flushRenderingCallbacks()
       })
     }
 
@@ -194,12 +200,12 @@ describe("useShape", () => {
     })
 
     act(() => {
-      shared.rendering = 1
+      setRendering(1)
       shapeInstance.set({count: 1})
-      shared.rendering = 0
+      setRendering(0)
       shapeInstance.set({count: 2})
       act(() => {
-        shared.flushRenderingCallbacks()
+        flushRenderingCallbacks()
       })
     })
 

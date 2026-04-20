@@ -1,12 +1,11 @@
+import {resetSharedStateForTests} from "../src/shared.js"
+
 import Shape from "../src/shape.js"
-import shared from "../src/shared.js"
 
 describe("shape modes", () => {
   beforeEach(() => {
     jasmine.clock().install()
-    shared.afterPaintCallbacks = []
-    shared.afterPaintHandle = undefined
-    shared.renderingCallbacks = []
+    resetSharedStateForTests()
   })
 
   afterEach(() => {
