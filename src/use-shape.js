@@ -1,9 +1,10 @@
 import {referenceDifferent} from "./diff-utils.js"
 import resolveInitialStateValue from "./resolve-initial-state-value.js"
-import {useEffect, useMemo, useState} from "react"
+import {useEffect, useMemo} from "react"
 import fetchingObject from "fetching-object"
 import {shapeComponent} from "./shape-component.js"
-import shared from "./shared.js"
+import {enqueueRenderCallback, getRendering} from "./shared.js"
+import useState from "./use-state.js"
 
 class UseShapeState {
   constructor() {
@@ -71,10 +72,10 @@ class UseShapeState {
     if (!this.__requestRender) return
     if (!this.__mounted && !this.__mounting) return
 
-    if (shared.rendering > 0 || !this.__mounted) {
+    if (getRendering() > 0 || !this.__mounted) {
       if (this.__renderQueued) return
       this.__renderQueued = true
-      shared.enqueueRenderCallback(() => {
+      enqueueRenderCallback(() => {
         this.__renderQueued = false
         if (this.__mounted && this.__requestRender) this.__requestRender()
       })

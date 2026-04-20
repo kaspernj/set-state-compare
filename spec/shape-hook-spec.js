@@ -1,26 +1,29 @@
+import {
+  getAfterPaintCallbacks,
+  resetSharedStateForTests,
+  setAfterPaintCallbacks,
+  setAfterPaintHandle
+} from "../src/shared.js"
+
 import React from "react"
 import TestRenderer, {act} from "react-test-renderer"
 import {ShapeHook, useShapeHook} from "../src/shape-hook.js"
-import shared from "../src/shared.js"
 
 /**
  * @returns {void}
  */
 function resetShared() {
-  shared.rendering = 0
-  shared.renderingCallbacks = []
-  shared.afterPaintCallbacks = []
-  shared.afterPaintHandle = undefined
+  resetSharedStateForTests()
 }
 
 /**
  * @returns {void}
  */
 function flushAfterPaint() {
-  const callbacks = shared.afterPaintCallbacks
+  const callbacks = getAfterPaintCallbacks()
 
-  shared.afterPaintCallbacks = []
-  shared.afterPaintHandle = undefined
+  setAfterPaintCallbacks([])
+  setAfterPaintHandle(undefined)
 
   for (const callback of callbacks) {
     callback()

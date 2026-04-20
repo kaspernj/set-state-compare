@@ -1,5 +1,5 @@
 import {simpleObjectValuesDifferent} from "./diff-utils.js"
-import shared from "./shared.js"
+import {scheduleAfterPaint} from "./shared.js"
 
 /** @type {{mode: string, renderComponents: Shape[], renderLaterTimeout: number | undefined}} */
 const settings = {
@@ -148,7 +148,7 @@ export default class Shape {
     settings.renderComponents.push(this)
 
     if (!settings.renderLaterTimeout) {
-      settings.renderLaterTimeout = shared.scheduleAfterPaint(() => {
+      settings.renderLaterTimeout = scheduleAfterPaint(() => {
         settings.renderLaterTimeout = undefined
         callRenders()
       })
