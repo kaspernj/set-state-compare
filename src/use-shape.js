@@ -1,9 +1,10 @@
 import {referenceDifferent} from "./diff-utils.js"
 import resolveInitialStateValue from "./resolve-initial-state-value.js"
-import {useEffect, useMemo, useState} from "react"
+import {useEffect, useMemo} from "react"
 import fetchingObject from "fetching-object"
 import {shapeComponent} from "./shape-component.js"
 import {enqueueRenderCallback, getRendering} from "./shared.js"
+import useState from "./use-state.js"
 
 class UseShapeState {
   constructor() {

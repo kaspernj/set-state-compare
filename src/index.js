@@ -4,6 +4,7 @@ import {ShapeHook, useShapeHook} from "./shape-hook.js"
 import shouldComponentUpdate from "./should-component-update.js"
 import setState from "./set-state.js"
 import useNow from "./use-now.js"
+import useState from "./use-state.js"
 
 export {
   anythingDifferent,
@@ -18,5 +19,6 @@ export {
   ShapeHook,
   setState,
   useNow,
-  useShapeHook
+  useShapeHook,
+  useState
 }

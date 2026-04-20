@@ -5,7 +5,8 @@ import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
 import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import {enqueueRenderCallback, getRendering, scheduleAfterPaint, setRendering} from "./shared.js"
-import {useLayoutEffect, useMemo, useState} from "react"
+import {useLayoutEffect, useMemo} from "react"
+import useState from "./use-state.js"
 
 /**
  * @typedef {object} ShapeHookLifecycleHooks
