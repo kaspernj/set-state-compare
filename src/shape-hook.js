@@ -3,7 +3,6 @@ import {dig} from "diggerize"
 import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
-import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import {enqueueRenderCallback, getRendering, scheduleAfterPaint, setRendering} from "./shared.js"
 import {useLayoutEffect, useMemo} from "react"
 import useState from "./use-state.js"
@@ -266,37 +265,6 @@ class ShapeHook {
   }
 
   /**
-   * Backward-compatible class-component state registration helper.
-   * Prefer class-field `state = {...}` for new code, but existing
-   * ShapeComponent consumers still call `this.useState(...)` in `setup()`
-   * and `render()`.
-   * @param {string} stateName
-   * @param {any} [defaultValue]
-   * @returns {(newValue: any, args?: {silent?: boolean}) => void}
-   */
-  useState(stateName, defaultValue) {
-    return registerShapeHookState(this, stateName, defaultValue, {resolveInitialValue: true})
-  }
-
-  /**
-   * Backward-compatible class-component state registration helper.
-   * Prefer class-field `state = {...}` for new code.
-   * @param {Array<string>|Record<string, any>} statesList
-   * @returns {void}
-   */
-  useStates(statesList) {
-    if (Array.isArray(statesList)) {
-      for (const stateName of statesList) {
-        this.useState(stateName)
-      }
-    } else {
-      for (const stateName in statesList) {
-        this.useState(stateName, statesList[stateName])
-      }
-    }
-  }
-
-  /**
    * Requests a re-render via the instance's update counter. Silent no-op
    * only after true teardown (not mounted and not mounting), so writes
    * after unmount do not trigger React warnings. Pre-mount and mid-render
@@ -326,10 +294,9 @@ class ShapeHook {
  * @param {ShapeHook<Record<string, any>, Record<string, any>>} shape
  * @param {string} stateName
  * @param {any} [defaultValue]
- * @param {{resolveInitialValue?: boolean}} [options]
  * @returns {(newValue: any, args?: {silent?: boolean}) => void}
  */
-function registerShapeHookState(shape, stateName, defaultValue, options) {
+function registerShapeHookState(shape, stateName, defaultValue) {
   if (Object.hasOwn(shape.setStates, stateName)) {
     return shape.setStates[stateName]
   }
@@ -337,7 +304,7 @@ function registerShapeHookState(shape, stateName, defaultValue, options) {
   const mutableState = /** @type {Record<string, any>} */ (shape.state)
 
   if (!(stateName in mutableState)) {
-    mutableState[stateName] = options?.resolveInitialValue ? resolveInitialStateValue(defaultValue) : defaultValue
+    mutableState[stateName] = defaultValue
   }
 
   shape.setStates[stateName] = (newValue, stateArgs) => {
