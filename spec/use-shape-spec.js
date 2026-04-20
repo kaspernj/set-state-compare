@@ -1,10 +1,7 @@
 import {
   flushRenderingCallbacks,
-  getAfterPaintCallbacks,
   getRenderingCallbacks,
   resetSharedStateForTests,
-  setAfterPaintCallbacks,
-  setAfterPaintHandle,
   setRendering
 } from "../src/shared.js"
 

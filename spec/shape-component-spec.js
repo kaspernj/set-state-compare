@@ -1,11 +1,8 @@
 import {
-  flushRenderingCallbacks,
   getAfterPaintCallbacks,
-  getRenderingCallbacks,
   resetSharedStateForTests,
   setAfterPaintCallbacks,
-  setAfterPaintHandle,
-  setRendering
+  setAfterPaintHandle
 } from "../src/shared.js"
 
 import React from "react"
