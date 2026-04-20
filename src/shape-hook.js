@@ -275,11 +275,7 @@ class ShapeHook {
    * @returns {(newValue: any, args?: {silent?: boolean}) => void}
    */
   useState(stateName, defaultValue) {
-    return registerShapeHookState(
-      this,
-      stateName,
-      resolveInitialStateValue(defaultValue)
-    )
+    return registerShapeHookState(this, stateName, defaultValue, {resolveInitialValue: true})
   }
 
   /**
@@ -330,9 +326,10 @@ class ShapeHook {
  * @param {ShapeHook<Record<string, any>, Record<string, any>>} shape
  * @param {string} stateName
  * @param {any} [defaultValue]
+ * @param {{resolveInitialValue?: boolean}} [options]
  * @returns {(newValue: any, args?: {silent?: boolean}) => void}
  */
-function registerShapeHookState(shape, stateName, defaultValue) {
+function registerShapeHookState(shape, stateName, defaultValue, options) {
   if (Object.hasOwn(shape.setStates, stateName)) {
     return shape.setStates[stateName]
   }
@@ -340,7 +337,7 @@ function registerShapeHookState(shape, stateName, defaultValue) {
   const mutableState = /** @type {Record<string, any>} */ (shape.state)
 
   if (!(stateName in mutableState)) {
-    mutableState[stateName] = defaultValue
+    mutableState[stateName] = options?.resolveInitialValue ? resolveInitialStateValue(defaultValue) : defaultValue
   }
 
   shape.setStates[stateName] = (newValue, stateArgs) => {

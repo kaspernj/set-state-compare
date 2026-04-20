@@ -296,6 +296,34 @@ describe("shapeComponent", () => {
     expect(renderer.toJSON().children).toEqual(["3"])
   })
 
+
+  it("resolves class useState() lazy initializers only once across re-renders", () => {
+    const initializer = jasmine.createSpy("initializer").and.returnValue(["a", "b"])
+
+    class LazyLegacyRenderShape extends ShapeComponent {
+      render() {
+        this.useState("items", initializer)
+
+        return React.createElement("div", null, String(this.s.items.length))
+      }
+    }
+
+    const Component = shapeComponent(LazyLegacyRenderShape)
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Component, {count: 1}))
+    })
+
+    act(() => {
+      renderer.update(React.createElement(Component, {count: 2}))
+    })
+
+    expect(initializer.calls.count()).toBe(1)
+    expect(renderer.toJSON().children).toEqual(["2"])
+  })
+
   it("runs componentDidUpdate when props change with defaultProps", () => {
     let updates = 0
     /** @type {Record<string, any> | undefined} */
