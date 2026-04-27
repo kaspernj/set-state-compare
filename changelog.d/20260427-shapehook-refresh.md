@@ -1,0 +1,1 @@
+Add `refresh()` to `ShapeHook`/`ShapeComponent` as a render-time lifecycle hook that skips the first render, so constructors can initialize typed instance fields without duplicating first-render setup work.
