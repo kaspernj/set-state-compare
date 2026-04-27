@@ -14,6 +14,7 @@ import useState from "./use-state.js"
  * @property {() => void} [componentWillUnmount]
  * @property {{children: [import("react").ReactNode]}} props
  * @property {() => void} [setup]
+ * @property {() => void} [refresh]
  */
 
 /**
@@ -402,6 +403,10 @@ function useShapeHook(ShapeHookClass, props) {
 
     if (lifecycle.setup) {
       lifecycle.setup()
+    }
+
+    if (shape.__firstRenderCompleted && lifecycle.refresh) {
+      lifecycle.refresh()
     }
 
     if (lifecycle.componentDidUpdate && shape.__firstRenderCompleted && propsChanged) {

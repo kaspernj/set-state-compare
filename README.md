@@ -54,7 +54,7 @@ Modes:
 
 ## ShapeComponent
 Class-style component wrapper with hook-like lifecycle helpers.
-`setup()` runs before each render, so it is suitable for derived values and render-time side work. Declare component state on the class-field `state` object.
+`setup()` runs before each render, so it is suitable for derived values and render-time side work. `refresh()` also runs before renders, but skips the first render where the constructor already ran. Declare component state on the class-field `state` object.
 
 ```js
 import {ShapeComponent, shapeComponent} from "set-state-compare/build/shape-component.js"
@@ -227,7 +227,7 @@ function Example(props) {
 ```
 
 ## useShapeHook
-Class-based hooks with `ShapeComponent`-style lifecycle methods like `setup`, `componentDidMount`, and `componentWillUnmount`. Declare hook state on the class-field `state` object.
+Class-based hooks with `ShapeComponent`-style lifecycle methods like `setup`, `refresh`, `componentDidMount`, and `componentWillUnmount`. `setup()` runs before every render. `refresh()` runs before every render after the first one, which lets constructors initialize typed instance fields without duplicating first-render setup work. Declare hook state on the class-field `state` object.
 
 ```js
 import useShapeHook, {ShapeHook} from "set-state-compare/build/shape-hook.js"
