@@ -5,7 +5,7 @@ import {
   setAfterPaintHandle
 } from "../src/shared.js"
 
-import React from "react"
+import React, {useState as reactUseState} from "react"
 import TestRenderer, {act} from "react-test-renderer"
 import {ShapeHook, useShapeHook} from "../src/shape-hook.js"
 
@@ -33,6 +33,144 @@ function flushAfterPaint() {
 describe("useShapeHook", () => {
   beforeEach(() => {
     resetShared()
+  })
+
+  it("throws a clear error when a hook is called from the constructor", () => {
+    class ConstructorHook extends ShapeHook {
+      /**
+       * @param {Record<string, never>} props
+       */
+      constructor(props) {
+        super(props)
+        reactUseState(0)
+      }
+    }
+
+    /**
+     * @returns {import("react").ReactElement}
+     */
+    function ConstructorHost() {
+      useShapeHook(ConstructorHook, {})
+
+      return React.createElement("div", null, "Constructor")
+    }
+
+    expect(() => {
+      act(() => {
+        TestRenderer.create(React.createElement(ConstructorHost))
+      })
+    }).toThrowError(/React hooks cannot be called from ConstructorHook's constructor.*setup\(\)/)
+  })
+
+  it("throws a clear error when a hook is called from refresh", () => {
+    /** @augments {ShapeHook<{name: string}>} */
+    class RefreshHook extends ShapeHook {
+      /**
+       * @returns {void}
+       */
+      refresh() {
+        reactUseState(0)
+      }
+    }
+
+    /**
+     * @param {{name: string}} props
+     * @returns {import("react").ReactElement}
+     */
+    function RefreshHost(props) {
+      useShapeHook(RefreshHook, props)
+
+      return React.createElement("div", null, props.name)
+    }
+
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(RefreshHost, {name: "Donald"}))
+    })
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    expect(() => {
+      act(() => {
+        renderer.update(React.createElement(RefreshHost, {name: "Daisy"}))
+      })
+    }).toThrowError(/React hooks cannot be called from RefreshHook\.refresh\(\).*setup\(\)/)
+  })
+
+  it("allows hooks from setup and re-runs them on every render", () => {
+    /** @type {SetupStateHook | undefined} */
+    let hookInstance
+    let setupCalls = 0
+    /** @type {number[]} */
+    const setupCounts = []
+
+    /** @augments {ShapeHook<{name: string}>} */
+    class SetupStateHook extends ShapeHook {
+      /** @type {number} */
+      count = this.hookField()
+
+      /** @type {(newValue: number | ((previousState: number) => number)) => void} */
+      setCount = this.hookField()
+
+      /**
+       * @returns {void}
+       */
+      setup() {
+        const [count, setCount] = reactUseState(0)
+
+        setupCalls += 1
+        setupCounts.push(count)
+        this.count = count
+        this.setCount = setCount
+      }
+    }
+
+    /**
+     * @param {{name: string}} props
+     * @returns {import("react").ReactElement}
+     */
+    function SetupStateHost(props) {
+      const hook = useShapeHook(SetupStateHook, props)
+
+      hookInstance = hook
+
+      return React.createElement("div", null, `${props.name}:${hook.count}`)
+    }
+
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(SetupStateHost, {name: "Donald"}))
+    })
+
+    expect(renderer.toJSON().children).toEqual(["Donald:0"])
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    act(() => {
+      renderer.update(React.createElement(SetupStateHost, {name: "Daisy"}))
+    })
+
+    expect(renderer.toJSON().children).toEqual(["Daisy:0"])
+
+    act(() => {
+      flushAfterPaint()
+    })
+
+    act(() => {
+      hookInstance.setCount((previousCount) => previousCount + 1)
+    })
+
+    expect(renderer.toJSON().children).toEqual(["Daisy:1"])
+    expect(setupCalls).toBe(3)
+    expect(setupCounts).toEqual([0, 0, 1])
   })
 
   it("supports setup with class-based hook state", () => {

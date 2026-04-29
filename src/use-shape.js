@@ -3,7 +3,7 @@ import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import {useEffect, useMemo} from "react"
 import fetchingObject from "fetching-object"
 import {shapeComponent} from "./shape-component.js"
-import {enqueueRenderCallback, getRendering} from "./shared.js"
+import {assertShapeHookLifecycleSupportsHooks, enqueueRenderCallback, getRendering} from "./shared.js"
 import useState from "./use-state.js"
 
 class UseShapeState {
@@ -138,6 +138,8 @@ class UseShapeState {
  * @returns {UseShapeState}
  */
 function useShape(props, opts) {
+  assertShapeHookLifecycleSupportsHooks("useShape")
+
   // One counter per instance drives all re-renders; state values live on
   // shape.state so writes after unmount can update silently.
   const [, setUpdateCount] = useState(0)

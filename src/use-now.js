@@ -1,4 +1,5 @@
 import {arrayReferenceDifferent} from "./diff-utils.js"
+import {assertShapeHookLifecycleSupportsHooks} from "./shared.js"
 import {useRef} from "react"
 
 /**
@@ -15,6 +16,8 @@ import {useRef} from "react"
  * @returns {void}
  */
 export default function useNow(callback, deps) {
+  assertShapeHookLifecycleSupportsHooks("useNow")
+
   /** @type {import("react").MutableRefObject<Array<unknown> | null>} */
   const prev = useRef(null)
 

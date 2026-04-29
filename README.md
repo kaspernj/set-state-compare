@@ -54,7 +54,7 @@ Modes:
 
 ## ShapeComponent
 Class-style component wrapper with hook-like lifecycle helpers.
-`setup()` runs before each render, so it is suitable for derived values and render-time side work. `refresh()` also runs before renders, but skips the first render where the constructor already ran. Declare component state on the class-field `state` object.
+`setup()` runs before each render, so it is the only valid lifecycle site for React hooks. The constructor runs inside `useMemo` and may not call hooks. `refresh()` skips the first render and may not call hooks because doing so changes the hook count between the first and later renders. Declare component state on the class-field `state` object.
 
 ```js
 import {ShapeComponent, shapeComponent} from "set-state-compare/build/shape-component.js"
@@ -68,6 +68,34 @@ class Counter extends ShapeComponent {
 }
 
 export default shapeComponent(Counter)
+```
+
+### Hook-Derived Fields
+
+Declare fields that are assigned from hooks with `this.hookField()`, then assign them in `setup()`. The initializer is typed as the field type for TypeScript, while still evaluating to `undefined` until `setup()` assigns the real value.
+
+```js
+import {ShapeComponent, shapeComponent} from "set-state-compare/build/shape-component.js"
+import {useThemeColors, useThemeName} from "./theme-hooks.js"
+
+class Screen extends ShapeComponent {
+  /** @type {ReturnType<typeof useThemeColors>} */
+  colors = this.hookField()
+
+  /** @type {ReturnType<typeof useThemeName>} */
+  themeName = this.hookField()
+
+  setup() {
+    this.colors = useThemeColors()
+    this.themeName = useThemeName()
+  }
+
+  render() {
+    return React.createElement("div", {style: {color: this.colors.text}}, this.themeName)
+  }
+}
+
+export default shapeComponent(Screen)
 ```
 
 ### Typed Props and State
@@ -227,7 +255,7 @@ function Example(props) {
 ```
 
 ## useShapeHook
-Class-based hooks with `ShapeComponent`-style lifecycle methods like `setup`, `refresh`, `componentDidMount`, and `componentWillUnmount`. `setup()` runs before every render. `refresh()` runs before every render after the first one, which lets constructors initialize typed instance fields without duplicating first-render setup work. Declare hook state on the class-field `state` object.
+Class-based hooks with `ShapeComponent`-style lifecycle methods like `setup`, `refresh`, `componentDidMount`, and `componentWillUnmount`. `setup()` runs before every render and is the only valid lifecycle site for React hooks. Constructors run inside `useMemo` and may not call hooks. `refresh()` runs only after the first render and may not call hooks because it would add hooks on later renders that did not run on the first render. Declare hook state on the class-field `state` object.
 
 ```js
 import useShapeHook, {ShapeHook} from "set-state-compare/build/shape-hook.js"
