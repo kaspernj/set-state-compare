@@ -14,7 +14,7 @@
     "lint": "eslint",
     "prepublishOnly": "npm run build",
     "test": "jasmine",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.spec.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.spec.json && tsc --noEmit -p tsconfig.hook-field-spec.json",
     "watch": "tsc -w"
   },
   "repository": {

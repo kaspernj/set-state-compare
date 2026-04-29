@@ -1,4 +1,4 @@
-import {enqueueRenderCallback, getRendering} from "./shared.js"
+import {assertShapeHookLifecycleSupportsHooks, enqueueRenderCallback, getRendering} from "./shared.js"
 import {useLayoutEffect, useRef, useState as reactUseState} from "react"
 
 /**
@@ -12,6 +12,8 @@ import {useLayoutEffect, useRef, useState as reactUseState} from "react"
  * @returns {[T, (newValue: SetStateAction<T>) => void]}
  */
 export default function useState(initialState) {
+  assertShapeHookLifecycleSupportsHooks("useState")
+
   const [state, setState] = reactUseState(initialState)
   /** @type {import("react").RefObject<boolean>} */
   const mountedRef = useRef(false)

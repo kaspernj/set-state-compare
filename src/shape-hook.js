@@ -3,7 +3,14 @@ import {dig} from "diggerize"
 import fetchingObject from "fetching-object"
 import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
-import {enqueueRenderCallback, getRendering, scheduleAfterPaint, setRendering} from "./shared.js"
+import {
+  assertShapeHookLifecycleSupportsHooks,
+  enqueueRenderCallback,
+  getRendering,
+  scheduleAfterPaint,
+  setRendering,
+  withShapeHookLifecycle
+} from "./shared.js"
 import {useLayoutEffect, useMemo} from "react"
 import useState from "./use-state.js"
 
@@ -195,6 +202,21 @@ class ShapeHook {
   }
 
   /**
+   * Declares an instance field that will be assigned during `setup()`.
+   * Returns `undefined` at construction time but is typed as `T` so
+   * TypeScript treats the field as definitely assigned. Pair every usage
+   * with an assignment in `setup()` — reading the field before `setup()`
+   * runs will surface as `undefined` (the framework calls `setup()`
+   * before `render()` on every render, so reads inside `render()` are safe).
+   * @protected
+   * @template T
+   * @returns {T}
+   */
+  hookField() {
+    return /** @type {T} */ (/** @type {unknown} */ (undefined))
+  }
+
+  /**
    * @param {Partial<S> | ((state: S) => Partial<S>)} statesList
    * @param {function() : void} [callback]
    * @returns {void}
@@ -336,6 +358,8 @@ function registerShapeHookState(shape, stateName, defaultValue) {
  * @returns {T}
  */
 function useShapeHook(ShapeHookClass, props) {
+  assertShapeHookLifecycleSupportsHooks("useShapeHook")
+
   // One counter per component drives all re-renders; state values live on
   // the instance (this.state) so writes after unmount can update silently.
   const [, setUpdateCount] = useState(0)
@@ -379,7 +403,10 @@ function useShapeHook(ShapeHookClass, props) {
     }
 
     const shape = useMemo(() => {
-      const instance = new ShapeHookClass(actualProps)
+      const instance = withShapeHookLifecycle(
+        {name: "constructor", className: ShapeHookClass.name},
+        () => new ShapeHookClass(actualProps)
+      )
 
       // Snapshot state keys defined as class fields (before setup adds more).
       instance.__classFieldStateKeys = Object.keys(instance.state)
@@ -402,11 +429,17 @@ function useShapeHook(ShapeHookClass, props) {
     }
 
     if (lifecycle.setup) {
-      lifecycle.setup()
+      withShapeHookLifecycle(
+        {name: "setup", className: ShapeHookClass.name},
+        () => lifecycle.setup?.()
+      )
     }
 
     if (shape.__firstRenderCompleted && lifecycle.refresh) {
-      lifecycle.refresh()
+      withShapeHookLifecycle(
+        {name: "refresh", className: ShapeHookClass.name},
+        () => lifecycle.refresh?.()
+      )
     }
 
     if (lifecycle.componentDidUpdate && shape.__firstRenderCompleted && propsChanged) {
