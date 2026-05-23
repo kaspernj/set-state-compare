@@ -9,7 +9,7 @@
   "types": "build/index.d.ts",
   "type": "module",
   "scripts": {
-    "release:patch": "node scripts/release-patch.js",
+    "release:patch": "release-patch",
     "build": "rm -rf build && tsc",
     "lint": "eslint",
     "prepublishOnly": "npm run build",
@@ -45,6 +45,7 @@
     "jasmine": "^6.0.0",
     "react": "^19.2.3",
     "react-test-renderer": "^19.2.3",
+    "release-patch": "^1.0.0",
     "typescript": "^6.0.2"
   },
   "dependencies": {
