@@ -1,0 +1,1 @@
+`useNow` now supports cleanup functions. If the callback returns a function, it is called before the next dep-change invocation and once on unmount, mirroring `useEffect` cleanup semantics while keeping the render-phase timing.

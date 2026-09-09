@@ -290,8 +290,21 @@ Semantics:
 - Runs during render, not after commit.
 - Fires exactly once per real dep change, even under StrictMode's double render pass (previous deps are tracked on a `useRef` that persists across the pass).
 - Dep comparison uses `arrayReferenceDifferent` — same per-element reference equality React uses for hook deps.
-- No cleanup phase. If the callback starts async work, cancel it inside the callback (e.g. with a request-id guard).
+- If the callback returns a function, it is called before the next dep-change invocation and once on unmount, mirroring `useEffect` cleanup semantics.
 - A full mount → unmount → remount cycle still re-fires, because the ref is fresh on the new mount. This matches `useMemo`.
+
+```js
+import {useNow} from "set-state-compare"
+
+function Example({userId}) {
+  useNow(() => {
+    const unsubscribe = subscribeToUser(userId)
+    return unsubscribe
+  }, [userId])
+
+  // ...
+}
+```
 
 ## Comparison Utilities
 

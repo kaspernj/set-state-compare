@@ -1,6 +1,16 @@
 import {arrayReferenceDifferent} from "./diff-utils.js"
 import {assertShapeHookLifecycleSupportsHooks} from "./shared.js"
-import {useRef} from "react"
+import {useEffect, useRef} from "react"
+
+/**
+ * @param {() => (void | (() => void))} callback
+ * @returns {(() => void) | undefined}
+ */
+function runCallback(callback) {
+  const result = callback()
+
+  return typeof result == "function" ? result : undefined
+}
 
 /**
  * Runs `callback` synchronously during render whenever `deps` change.
@@ -11,7 +21,11 @@ import {useRef} from "react"
  *
  * Unlike `useEffect`, the callback runs during render (not after commit), so
  * it kicks off work immediately instead of waiting for the next tick.
- * @param {() => void} callback
+ *
+ * If the callback returns a function, that function is called before the next
+ * dep-change invocation and once more on unmount. This mirrors the cleanup
+ * semantics of `useEffect` while keeping the render-phase timing.
+ * @param {() => (void | (() => void))} callback
  * @param {Array<unknown>} deps
  * @returns {void}
  */
@@ -20,9 +34,24 @@ export default function useNow(callback, deps) {
 
   /** @type {import("react").MutableRefObject<Array<unknown> | null>} */
   const prev = useRef(null)
+  /** @type {import("react").MutableRefObject<(() => void) | undefined>} */
+  const cleanup = useRef(undefined)
 
   if (prev.current === null || arrayReferenceDifferent(prev.current, deps)) {
+    if (cleanup.current) {
+      cleanup.current()
+    }
+
     prev.current = deps
-    callback()
+    cleanup.current = runCallback(callback)
   }
+
+  useEffect(() => {
+    return () => {
+      if (cleanup.current) {
+        cleanup.current()
+        cleanup.current = undefined
+      }
+    }
+  }, [])
 }
