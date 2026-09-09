@@ -290,7 +290,7 @@ Semantics:
 - Runs during render, not after commit.
 - Fires exactly once per real dep change, even under StrictMode's double render pass (previous deps are tracked on a `useRef` that persists across the pass).
 - Dep comparison uses `arrayReferenceDifferent` — same per-element reference equality React uses for hook deps.
-- If the callback returns a function, it is called before the next dep-change invocation and once on unmount, mirroring `useEffect` cleanup semantics.
+- If the callback returns a function, that function tears down the resource the callback started. The resource lifecycle is managed in the committed phase (a `deps`-keyed effect), not during render, so it survives React's development StrictMode effect replay and an abortable concurrent render can never tear down the committed resource.
 - A full mount → unmount → remount cycle still re-fires, because the ref is fresh on the new mount. This matches `useMemo`.
 
 ```js
