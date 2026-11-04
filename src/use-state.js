@@ -1,4 +1,4 @@
-import {assertShapeHookLifecycleSupportsHooks, enqueueRenderCallback, getRendering} from "./shared.js"
+import {assertShapeHookLifecycleSupportsHooks, enqueueRenderCallback, getRenderDepth} from "./shared.js"
 import {useLayoutEffect, useRef, useState as reactUseState} from "react"
 
 /**
@@ -68,9 +68,18 @@ export default function useState(initialState) {
     })
   }
 
-  /** @param {SetStateAction<T>} newValue */
+  /**
+   * Queues the write while React is rendering, and applies it straight away otherwise.
+   *
+   * The check used to be the paint-window counter, which stays raised until the
+   * after-paint callback runs. A keystroke landing in that window was queued, so the
+   * value React holds for the next commit lagged behind the field and the commit wrote
+   * that stale value back over what the user had typed.
+   * @param {SetStateAction<T>} newValue
+   * @returns {void}
+   */
   const setDeferredState = (newValue) => {
-    if (renderingRef.current || getRendering() > 0) {
+    if (renderingRef.current || getRenderDepth() > 0 || !mountedRef.current) {
       queuedUpdatesRef.current.push(newValue)
 
       if (!renderQueuedRef.current) {

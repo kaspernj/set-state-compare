@@ -207,6 +207,29 @@ export function setRendering(value) {
   sharedGlobal[renderingKey] = value
 }
 
+/**
+ * How many shape renders are currently on the call stack — the render phase
+ * only. It is lowered as soon as the render function returns, so a write from a
+ * user event or an effect is not mistaken for a write made while React renders.
+ * @type {number}
+ */
+let renderDepth = 0
+
+/** @returns {number} */
+export function getRenderDepth() {
+  return renderDepth
+}
+
+/** @returns {void} */
+export function enterRender() {
+  renderDepth += 1
+}
+
+/** @returns {void} */
+export function exitRender() {
+  renderDepth = Math.max(0, renderDepth - 1)
+}
+
 /** @returns {Array<() => void>} */
 export function getRenderingCallbacks() {
   return renderingCallbacks
@@ -248,6 +271,7 @@ export function setDeferredCallbackErrorReporterForTests(reporter) {
 /** @returns {void} */
 export function resetSharedStateForTests() {
   setRendering(0)
+  renderDepth = 0
   setRenderingCallbacks([])
   setAfterPaintCallbacks([])
   setAfterPaintHandle(undefined)

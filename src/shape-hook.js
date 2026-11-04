@@ -5,7 +5,9 @@ import memoCompareProps from "./memo-compare-props.js"
 import PropTypes from "prop-types"
 import {
   assertShapeHookLifecycleSupportsHooks,
+  enterRender,
   enqueueRenderCallback,
+  exitRender,
   getRendering,
   scheduleAfterPaint,
   setRendering,
@@ -366,6 +368,7 @@ function useShapeHook(ShapeHookClass, props) {
 
   // Count rendering to avoid setting state while rendering which causes a console-error from React.
   setRendering(getRendering() + 1)
+  enterRender()
 
   try {
     // Calculate and validate props.
@@ -481,6 +484,11 @@ function useShapeHook(ShapeHookClass, props) {
 
     return /** @type {T} */ (shape)
   } finally {
+    // The render phase is over as soon as this function returns. The paint window
+    // stays open for the deferred callbacks, but writes made after this point come
+    // from a user event or an effect, not from React rendering.
+    exitRender()
+
     scheduleAfterPaint(() => {
       setRendering(Math.max(0, getRendering() - 1))
     })
