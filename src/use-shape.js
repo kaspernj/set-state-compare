@@ -3,7 +3,7 @@ import resolveInitialStateValue from "./resolve-initial-state-value.js"
 import {useEffect, useMemo} from "react"
 import fetchingObject from "fetching-object"
 import {shapeComponent} from "./shape-component.js"
-import {assertShapeHookLifecycleSupportsHooks, enqueueRenderCallback, getRendering} from "./shared.js"
+import {assertShapeHookLifecycleSupportsHooks, enterRender, enqueueRenderCallback, exitRender, getRendering} from "./shared.js"
 import useState from "./use-state.js"
 
 class UseShapeState {
@@ -140,35 +140,41 @@ class UseShapeState {
 function useShape(props, opts) {
   assertShapeHookLifecycleSupportsHooks("useShape")
 
-  // One counter per instance drives all re-renders; state values live on
-  // shape.state so writes after unmount can update silently.
-  const [, setUpdateCount] = useState(0)
+  enterRender()
 
-  /** @type {UseShapeState} */
-  const shape = useMemo(
-    () => {
-      const ShapeClass = opts?.shapeClass || UseShapeState
+  try {
+    // One counter per instance drives all re-renders; state values live on
+    // shape.state so writes after unmount can update silently.
+    const [, setUpdateCount] = useState(0)
 
-      return new ShapeClass()
-    },
-    []
-  )
+    /** @type {UseShapeState} */
+    const shape = useMemo(
+      () => {
+        const ShapeClass = opts?.shapeClass || UseShapeState
 
-  // setUpdateCount is stable across renders; assign once per instance.
-  shape.__requestRender ??= () => setUpdateCount((n) => n + 1)
+        return new ShapeClass()
+      },
+      []
+    )
 
-  useEffect(() => {
-    shape.__mounting = false
-    shape.__mounted = true
+    // setUpdateCount is stable across renders; assign once per instance.
+    shape.__requestRender ??= () => setUpdateCount((n) => n + 1)
 
-    return () => {
-      shape.__mounted = false
-    }
-  }, [])
+    useEffect(() => {
+      shape.__mounting = false
+      shape.__mounted = true
 
-  shape.updateProps(props)
+      return () => {
+        shape.__mounted = false
+      }
+    }, [])
 
-  return shape
+    shape.updateProps(props)
+
+    return shape
+  } finally {
+    exitRender()
+  }
 }
 
 export {shapeComponent, UseShapeState as Shape}

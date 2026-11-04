@@ -1,6 +1,6 @@
 import React from "react"
 import TestRenderer, {act} from "react-test-renderer"
-import {flushAfterPaintCallbacks, resetSharedStateForTests} from "../src/shared.js"
+import {flushAfterPaintCallbacks, resetSharedStateForTests, setRendering} from "../src/shared.js"
 import useState from "../src/use-state.js"
 
 describe("useState", () => {
@@ -65,5 +65,39 @@ describe("useState", () => {
     })
 
     expect(renderer.toJSON().children).toEqual(["2"])
+  })
+
+  it("applies a write from a user event that lands inside the paint window", () => {
+    /** @type {(() => void) | undefined} */
+    let typeIntoField
+
+    /**
+     * @returns {import("react").ReactElement}
+     */
+    function Field() {
+      const [street, setStreet] = useState("")
+
+      typeIntoField = () => setStreet("Street")
+
+      return React.createElement("input", {value: street})
+    }
+
+    /** @type {import("react-test-renderer").ReactTestRenderer} */
+    let renderer
+
+    act(() => {
+      renderer = TestRenderer.create(React.createElement(Field))
+    })
+
+    // The render has returned and only the after-paint callback that lowers the counter
+    // is still pending, so this write comes from outside any render.
+    act(() => {
+      setRendering(1)
+      typeIntoField()
+    })
+
+    // React writes the value it holds at commit back into a controlled input, so a commit
+    // in this window rewrites the field with what was typed before this keystroke.
+    expect(renderer.toJSON().props.value).toBe("Street")
   })
 })
