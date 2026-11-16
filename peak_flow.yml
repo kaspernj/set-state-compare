@@ -1,6 +1,33 @@
 before_script:
   - npm install
-script:
-  - npm test
-  - npm run typecheck
-  - npm run lint
+builds:
+  tests:
+    persist_workspace: false
+    paths:
+      - "src/**"
+      - "spec/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+    script:
+      - npm test
+  typecheck:
+    persist_workspace: false
+    paths:
+      - "src/**"
+      - "spec/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+    script:
+      - npm run typecheck
+  lint:
+    persist_workspace: false
+    paths:
+      - "src/**"
+      - "spec/**"
+      - "package.json"
+      - "package-lock.json"
+      - "eslint.config.js"
+    script:
+      - npm run lint
